@@ -3,16 +3,7 @@ defmodule Labex do
   Documentation for `Labex`.
   """
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Labex.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  def run(_module, _) do
+    :not_implemented
   end
 end
