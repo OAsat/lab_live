@@ -4,7 +4,7 @@ defmodule ModelTest do
 
   test "def model" do
     defmodule DummyInstrument do
-      def query("KRDG? A", _opts), do "12.34"
+      def query("KRDG? A", _opts), do: "12.34"
     end
 
     defmodule MyModel do

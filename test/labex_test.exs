@@ -1,23 +1,27 @@
 defmodule LabexTest do
+  alias InstrumentTest.DummyInstrument
   use ExUnit.Case
   doctest Labex
 
-  test "def instruments" do
-    defmodule LabexTest.InstrA do
-      use Labex.Instrument
+  test "def measurement" do
+    defmodule DummyInstrument do
+      def query("KRDG? A", _opts), do: "12.34"
     end
 
-    defmodule LabexTest.InstrB do
-      use Labex.Instrument
+    defmodule MyModel do
+      use Labex.Instrument.Model
+
+      def_read(:kelvin, "KRDG? ~s", "~f")
     end
 
-    defmodule LabexTest.Measurement do
+    defmodule Measurement do
       use Labex
 
-      instrument(:instr_a, LabexTest.InstrA, {})
-      instrument(:instr_b, LabexTest.InstrB, {})
-    end
+      instrument(:inst1, MyModel, DummyInstrument)
+      instrument(:inst2, MyModel, DummyInstrument)
 
-    assert Labex.instruments() == [:instr_a, :instr_b]
+      readable(:t1, :inst1, :kelvin)
+      readable(:t2, :inst2, :kelvin)
+    end
   end
 end
