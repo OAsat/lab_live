@@ -9,6 +9,10 @@ defmodule Labex.Utils.Format do
     ans_split = String.split(answer, ",")
     fmt_split = String.split(format, ",")
 
+    if length(ans_split) != length(fmt_split) do
+      raise "'#{answer}' doesn't match to the expected format '#{format}'."
+    end
+
     Enum.zip([ans_split, fmt_split])
     |> Enum.map(fn {ans, fmt} ->
       case fmt do
