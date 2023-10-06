@@ -6,10 +6,10 @@ defmodule Labex.Instrument.TcpInstrument do
   @tcp_opts [:binary, packet: 0, active: false, reuseaddr: true]
 
   def get_name(key) do
-    {:via, Registry, {Labex.Instrument.Registry, key}}
+    {:via, Registry, {Labex.InstrumentRegistry, key}}
   end
 
-  def start_link(key, address, port) do
+  def start_link(key, {address, port}) do
     GenServer.start_link(__MODULE__, {address, port}, name: get_name(key))
   end
 
