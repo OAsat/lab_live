@@ -5,12 +5,8 @@ defmodule Labex.Instrument.TcpInstrument do
   @behaviour Impl
   @tcp_opts [:binary, packet: 0, active: false, reuseaddr: true]
 
-  def get_name(key) do
-    {:via, Registry, {Labex.InstrumentRegistry, key}}
-  end
-
-  def start_link(key, {address, port}) do
-    GenServer.start_link(__MODULE__, {address, port}, name: get_name(key))
+  def start_link(name, {address, port}) do
+    GenServer.start_link(__MODULE__, {address, port}, name: name)
   end
 
   @impl GenServer
@@ -38,12 +34,12 @@ defmodule Labex.Instrument.TcpInstrument do
   end
 
   @impl Impl
-  def read(message, key) do
-    GenServer.call(get_name(key), {:read, message})
+  def read(message, server: server) do
+    GenServer.call(server, {:read, message})
   end
 
   @impl Impl
-  def write(message, key) do
-    GenServer.cast(get_name(key), {:write, message})
+  def write(message, server: server) do
+    GenServer.cast(server, {:write, message})
   end
 end

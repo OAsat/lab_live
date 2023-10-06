@@ -9,10 +9,10 @@ defmodule Labex.Instrument.Model do
 
   defmacro def_read(key, query_format, answer_format) do
     quote do
-      def read(unquote(key), params, {impl_module, inst_name}) do
+      def read(unquote(key), params, {impl_module, opts}) do
         unquote(query_format)
         |> Format.format_query(params)
-        |> impl_module.read(inst_name)
+        |> impl_module.read(opts)
         |> Format.parse_answer(unquote(answer_format))
       end
     end
@@ -20,10 +20,10 @@ defmodule Labex.Instrument.Model do
 
   defmacro def_write(key, query_format) do
     quote do
-      def write(unquote(key), params, {impl_module, inst_name}) do
+      def write(unquote(key), params, {impl_module, opts}) do
         unquote(query_format)
         |> Format.format_query(params)
-        |> impl_module.write(inst_name)
+        |> impl_module.write(opts)
       end
     end
   end

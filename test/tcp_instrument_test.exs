@@ -42,12 +42,13 @@ defmodule TcpInstrumentTest do
 
     port = 8202
     {:ok, pid} = Task.start_link(fn -> Server.accept(port) end)
-    Registry.start_link(keys: :unique, name: Labex.InstrumentRegistry)
-    TcpInstrument.start_link(:inst1, {~c"localhost", port})
 
-    assert TcpInstrument.read("Hello from client.", :inst1) == "Hello from client."
-    assert TcpInstrument.read("Hello from client.", :inst1) == "Hello from client."
-    assert MyModel.read(:kelvin, ["A"], {TcpInstrument, :inst1}) == ["KRDG? A"]
+    {:ok, inst_pid} = TcpInstrument.start_link(:inst1, {~c"localhost", port})
+
+    assert TcpInstrument.read("Hello.", server: inst_pid) == "Hello."
+    assert TcpInstrument.read("Hi.", server: inst_pid) == "Hi."
+    assert MyModel.read(:kelvin, ["A"], {TcpInstrument, server: inst_pid}) == ["KRDG? A"]
+
     Process.exit(pid, :normal)
   end
 end
