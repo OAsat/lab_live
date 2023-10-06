@@ -34,12 +34,12 @@ defmodule Labex.Instrument.TcpInstrument do
   end
 
   @impl Impl
-  def read(message, server: server) do
+  def read(message, pid: server) do
     GenServer.call(server, {:read, message})
   end
 
   @impl Impl
-  def write(message, server: server) do
+  def write(message, pid: server) do
     GenServer.cast(server, {:write, message})
   end
 end

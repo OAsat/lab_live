@@ -3,8 +3,15 @@ defmodule Labex.Measurement do
     quote do
       import Labex.Measurement
       @instruments %{}
-      # Module.register_attribute(__MODULE__, :instruments, accumulate: true)
+      Module.register_attribute(__MODULE__, :instruments, accumulate: true)
       @before_compile unquote(__MODULE__)
+
+      def start_instruments() do
+        for {model, {impl, name, params}} <- instruments() do
+          via = {:via, Registry, {Labex.InstrumentRegistry, name}}
+          GenServer.start_link(impl, {key, params}, name: via)
+        end
+      end
     end
   end
 
@@ -20,15 +27,8 @@ defmodule Labex.Measurement do
     child_spec = {impl, {name, params}}
 
     quote do
-      @instruments Map.put(
-                     @instruments,
-                     unquote(name),
-                     {unquote(model), unquote(child_spec)}
-                   )
+      @instruments {unquote(model), unquote(child_spec)}
     end
-  end
-
-  def start_instruments() do
   end
 
   def start_instrument_manager() do

@@ -8,8 +8,8 @@ defmodule Labex.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      # {DynamicSupervisor, name: Labex.Instrument.Supervisor, strategy: :one_for_one},
-      # {Registry, keys: :unique, name: Labex.Instrument.Registry}
+      {DynamicSupervisor, name: Labex.Instrument.Supervisor, strategy: :one_for_one},
+      {Registry, keys: :unique, name: Labex.Instrument.Registry}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

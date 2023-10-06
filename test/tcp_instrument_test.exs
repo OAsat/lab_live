@@ -45,9 +45,9 @@ defmodule TcpInstrumentTest do
 
     {:ok, inst_pid} = TcpInstrument.start_link(:inst1, {~c"localhost", port})
 
-    assert TcpInstrument.read("Hello.", server: inst_pid) == "Hello."
-    assert TcpInstrument.read("Hi.", server: inst_pid) == "Hi."
-    assert MyModel.read(:kelvin, ["A"], {TcpInstrument, server: inst_pid}) == ["KRDG? A"]
+    assert TcpInstrument.read("Hello.", pid: inst_pid) == "Hello."
+    assert TcpInstrument.read("Hi.", pid: inst_pid) == "Hi."
+    assert MyModel.read(:kelvin, ["A"], {TcpInstrument, pid: inst_pid}) == ["KRDG? A"]
 
     Process.exit(pid, :normal)
   end
