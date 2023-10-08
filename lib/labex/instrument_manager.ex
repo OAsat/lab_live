@@ -1,4 +1,5 @@
 defmodule Labex.InstrumentManager do
+  alias Labex.Utils.Format
   use Supervisor
 
   @registry Labex.InstrumentRegistry
@@ -23,10 +24,6 @@ defmodule Labex.InstrumentManager do
     DynamicSupervisor.start_child(@supervisor, {module, {name, opts}})
   end
 
-  # def start_instrument(module, opts) do
-  #   DynamicSupervisor.start_child(@supervisor, {module, opts})
-  # end
-
   def lookup_instrument(key) do
     [{pid, module}] = Registry.lookup(@registry, key)
     {pid, module}
@@ -36,12 +33,27 @@ defmodule Labex.InstrumentManager do
     {:via, Registry, {@registry, key, module}}
   end
 
-  def read(key, query) do
+  def read(key, query) when is_binary(query) do
     {pid, module} = lookup_instrument(key)
     module.read(pid, query)
   end
-  def write(key, query) do
+
+  def read(key, {model, variable, param_list}) when is_atom(variable) do
+    {query_fmt, answer_fmt} = model.read(variable)
+    query = Format.format_query(query_fmt, param_list)
+
+    read(key, query)
+    |> Format.parse_answer(answer_fmt)
+  end
+
+  def write(key, query) when is_binary(query) do
     {pid, module} = lookup_instrument(key)
     module.write(pid, query)
+  end
+
+  def write(key, {model, variable, param_list}) when is_atom(variable) do
+    query_fmt = model.write(variable)
+    query = Format.format_query(query_fmt, param_list)
+    write(key, query)
   end
 end
