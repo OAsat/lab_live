@@ -5,13 +5,6 @@ defmodule Labex.Measurement do
       @instruments %{}
       Module.register_attribute(__MODULE__, :instruments, accumulate: true)
       @before_compile unquote(__MODULE__)
-
-      def start_instruments() do
-        for {model, {impl, name, params}} <- instruments() do
-          via = {:via, Registry, {Labex.InstrumentRegistry, name}}
-          GenServer.start_link(impl, {key, params}, name: via)
-        end
-      end
     end
   end
 
@@ -29,14 +22,5 @@ defmodule Labex.Measurement do
     quote do
       @instruments {unquote(model), unquote(child_spec)}
     end
-  end
-
-  def start_instrument_manager() do
-    children = [
-      {DynamicSupervisor, name: Labex.InstrumentSupervisor, strategy: :one_for_one},
-      {Registry, keys: :unique, name: Labex.InstrumentRegistry}
-    ]
-
-    Supervisor.start_link(children, strategy: :one_for_all, name: Labex.InstrumentManager)
   end
 end

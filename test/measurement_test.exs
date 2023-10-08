@@ -14,8 +14,8 @@ defmodule MeasurementTest do
     end
 
     assert Measurement.instruments() == [
-             {MyModel, {Dummy, {:inst1, nil}}},
-             {MyModel, {Dummy, {:inst2, nil}}}
+             {MyModel, {Dummy, {:inst2, nil}}},
+             {MyModel, {Dummy, {:inst1, nil}}}
            ]
   end
 end

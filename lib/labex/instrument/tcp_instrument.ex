@@ -1,13 +1,9 @@
 defmodule Labex.Instrument.TcpInstrument do
-  alias Labex.Instrument.Impl
+  alias Labex.Instrument
 
   use GenServer
-  @behaviour Impl
+  @behaviour Instrument
   @tcp_opts [:binary, packet: 0, active: false, reuseaddr: true]
-
-  def start_link(name, {address, port}) do
-    GenServer.start_link(__MODULE__, {address, port}, name: name)
-  end
 
   @impl GenServer
   def init(opts) do
@@ -33,13 +29,18 @@ defmodule Labex.Instrument.TcpInstrument do
     {:noreply, opts}
   end
 
-  @impl Impl
-  def read(message, pid: server) do
-    GenServer.call(server, {:read, message})
+  @impl Instrument
+  def start_link(name, address: address, port: port) do
+    GenServer.start_link(__MODULE__, {address, port}, name: name)
   end
 
-  @impl Impl
-  def write(message, pid: server) do
-    GenServer.cast(server, {:write, message})
+  @impl Instrument
+  def read(pid, message, _opts \\ nil) do
+    GenServer.call(pid, {:read, message})
+  end
+
+  @impl Instrument
+  def write(pid, message, _opts \\ nil) do
+    GenServer.cast(pid, {:write, message})
   end
 end

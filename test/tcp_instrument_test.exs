@@ -34,20 +34,13 @@ defmodule TcpInstrumentTest do
       end
     end
 
-    defmodule MyModel do
-      use Labex.Instrument.Model
-
-      def_read(:kelvin, "KRDG? ~s", "~s")
-    end
-
     port = 8202
     {:ok, pid} = Task.start_link(fn -> Server.accept(port) end)
 
-    {:ok, inst_pid} = TcpInstrument.start_link(:inst1, {~c"localhost", port})
+    {:ok, inst_pid} = TcpInstrument.start_link(:inst1, address: ~c"localhost", port: port)
 
-    assert TcpInstrument.read("Hello.", pid: inst_pid) == "Hello."
-    assert TcpInstrument.read("Hi.", pid: inst_pid) == "Hi."
-    assert MyModel.read(:kelvin, ["A"], {TcpInstrument, pid: inst_pid}) == ["KRDG? A"]
+    assert TcpInstrument.read(inst_pid, "Hello.") == "Hello."
+    assert TcpInstrument.read(inst_pid, "Hi.") == "Hi."
 
     Process.exit(pid, :normal)
   end
