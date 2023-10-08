@@ -30,7 +30,7 @@ defmodule Labex.Instrument.TcpInstrument do
   end
 
   @impl Instrument
-  def start_link(name, address: address, port: port) do
+  def start_link({name, address: address, port: port}) do
     GenServer.start_link(__MODULE__, {address, port}, name: name)
   end
 

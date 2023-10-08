@@ -37,7 +37,7 @@ defmodule TcpInstrumentTest do
     port = 8202
     {:ok, pid} = Task.start_link(fn -> Server.accept(port) end)
 
-    {:ok, inst_pid} = TcpInstrument.start_link(:inst1, address: ~c"localhost", port: port)
+    {:ok, inst_pid} = TcpInstrument.start_link({:inst1, address: ~c"localhost", port: port})
 
     assert TcpInstrument.read(inst_pid, "Hello.") == "Hello."
     assert TcpInstrument.read(inst_pid, "Hi.") == "Hi."

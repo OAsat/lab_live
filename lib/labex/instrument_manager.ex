@@ -20,7 +20,7 @@ defmodule Labex.InstrumentManager do
 
   def start_instrument(key, module, opts) do
     name = get_via_name(key, module)
-    DynamicSupervisor.start_child(@supervisor, {module, [name, opts]})
+    DynamicSupervisor.start_child(@supervisor, {module, {name, opts}})
   end
 
   # def start_instrument(module, opts) do
@@ -39,5 +39,9 @@ defmodule Labex.InstrumentManager do
   def read(key, query) do
     {pid, module} = lookup_instrument(key)
     module.read(pid, query)
+  end
+  def write(key, query) do
+    {pid, module} = lookup_instrument(key)
+    module.write(pid, query)
   end
 end

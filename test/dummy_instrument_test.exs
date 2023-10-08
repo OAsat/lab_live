@@ -7,7 +7,7 @@ defmodule DummyInstrumentTest do
     mapping = %{
       "READ:A" => "100"
     }
-    {:ok, pid} = DummyInstrument.start_link(:dummy, mapping: mapping)
+    {:ok, pid} = DummyInstrument.start_link({:dummy, mapping: mapping})
     assert DummyInstrument.read(pid, "READ:A") == "100"
   end
 end
