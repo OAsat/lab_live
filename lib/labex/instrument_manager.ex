@@ -24,7 +24,7 @@ defmodule Labex.InstrumentManager do
     DynamicSupervisor.start_child(@supervisor, {module, {name, opts}})
   end
 
-  def lookup_instrument(key) do
+  def lookup(key) do
     [{pid, module}] = Registry.lookup(@registry, key)
     {pid, module}
   end
@@ -34,7 +34,7 @@ defmodule Labex.InstrumentManager do
   end
 
   def read(key, query) when is_binary(query) do
-    {pid, module} = lookup_instrument(key)
+    {pid, module} = lookup(key)
     module.read(pid, query)
   end
 
@@ -47,7 +47,7 @@ defmodule Labex.InstrumentManager do
   end
 
   def write(key, query) when is_binary(query) do
-    {pid, module} = lookup_instrument(key)
+    {pid, module} = lookup(key)
     module.write(pid, query)
   end
 

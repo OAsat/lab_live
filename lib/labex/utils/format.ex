@@ -17,7 +17,7 @@ defmodule Labex.Utils.Format do
     |> Enum.map(fn {ans, fmt} ->
       case fmt do
         "~s" -> ans
-        "~f" -> String.to_float(ans)
+        "~f" -> Float.parse(ans) |> elem(0)
         "~n" -> String.to_integer(ans)
       end
     end)

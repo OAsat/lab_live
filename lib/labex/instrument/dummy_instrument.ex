@@ -21,8 +21,8 @@ defmodule Labex.Instrument.DummyInstrument do
   end
 
   @impl Instrument
-  def start_link({name, mapping: mapping}) do
-    GenServer.start_link(__MODULE__, mapping, name: name)
+  def start_link({name, map: map}) do
+    GenServer.start_link(__MODULE__, map, name: name)
   end
 
   @impl Instrument

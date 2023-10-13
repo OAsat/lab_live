@@ -4,10 +4,11 @@ defmodule DummyInstrumentTest do
   doctest DummyInstrument
 
   test "dummy instrument" do
-    mapping = %{
+    map = %{
       "READ:A" => "100"
     }
-    {:ok, pid} = DummyInstrument.start_link({:dummy, mapping: mapping})
+
+    {:ok, pid} = DummyInstrument.start_link({:dummy, map: map})
     assert DummyInstrument.read(pid, "READ:A") == "100"
   end
 end
