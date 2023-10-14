@@ -6,22 +6,22 @@ defmodule ModelTest do
     defmodule SampleModel do
       use Labex.Instrument.Model
 
-      @impl Labex.Instrument.Model
-      def read(:kelvin), do: {"KRDG? ~s", "~f"}
-      @impl Labex.Instrument.Model
-      def write(:setp), do: "SETP ~s, ~p"
+      def_read(:kelvin, "KRDG? ~s", "~f")
+      def_write(:setp, "SETP ~s, ~p")
     end
 
-    defmodule MyBehaviour do
-      @callback foobar(foo_arg :: any()) :: any()
+    assert SampleModel.read(:kelvin) == {"KRDG? ~s\n", "~f\n"}
+    assert SampleModel.write(:setp) == "SETP ~s, ~p\n"
+  end
 
-      assert SampleModel.read(:kelvin) == {"KRDG? ~s", "~f"}
-      assert SampleModel.write(:setp) == "SETP ~s, ~p"
-      # assert_raise(
-      #   FunctionClauseError,
-      #   "Function read(:empty) is not implemented.",
-      #   fn -> SampleModel.read(:empty) end
-      # )
+  test "termination character" do
+    defmodule SampleModel2 do
+      use Labex.Instrument.Model
+
+      @write_termination "\r"
     end
+
+    assert SampleModel2.write_termination() == "\r"
+    assert SampleModel2.read_termination() == "\n"
   end
 end

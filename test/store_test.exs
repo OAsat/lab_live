@@ -9,5 +9,4 @@ defmodule StoreTest do
     Store.set(:var1, :defined)
     assert :defined == Store.get(:var1)
   end
-
 end
