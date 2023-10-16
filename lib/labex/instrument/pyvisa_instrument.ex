@@ -3,7 +3,7 @@ defmodule Labex.Instrument.PyvisaInstrument do
 
   use GenServer
   @behaviour Instrument
-  @python_src ~c"python/labex_pyvisa"
+  @python_src File.cwd!() |> Path.join("python/labex_pyvisa") |> to_charlist()
 
   @impl GenServer
   def init({python_exec, address}) do
