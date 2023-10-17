@@ -1,10 +1,10 @@
 defmodule ModelTest do
   use ExUnit.Case
-  doctest Labex.Instrument.Model
+  doctest Labex.Model
 
   test "def model" do
     defmodule SampleModel do
-      use Labex.Instrument.Model
+      use Labex.Model
 
       def_read(:kelvin, "KRDG? ~s", "~f")
       def_write(:setp, "SETP ~s, ~p")
@@ -16,7 +16,7 @@ defmodule ModelTest do
 
   test "termination character" do
     defmodule SampleModel2 do
-      use Labex.Instrument.Model
+      use Labex.Model
 
       @write_termination "\r"
     end

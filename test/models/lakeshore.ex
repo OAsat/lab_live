@@ -1,5 +1,5 @@
 defmodule LabexInstruments.Lakeshore do
-  alias Labex.Instrument.Model
+  alias Labex.Model
   use Model
 
   def_read(:kelvin, "KRDG? {s:channel}", "{f:temperature}")
