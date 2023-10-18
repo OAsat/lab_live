@@ -5,6 +5,12 @@ defmodule Labex.Measurement do
       @instruments %{}
       Module.register_attribute(__MODULE__, :instruments, accumulate: true)
       @before_compile unquote(__MODULE__)
+
+      def start_instruments() do
+        for {name, _model, impl, opts} <- instruments() do
+          Labex.InstrumentManager.start_instrument(name, impl, opts)
+        end
+      end
     end
   end
 
@@ -16,11 +22,10 @@ defmodule Labex.Measurement do
     end
   end
 
-  defmacro instrument(name, model, impl, params) do
-    child_spec = {impl, {name, params}}
-
+  @spec def_inst(atom(), module(), module(), any()) :: Macro.t()
+  defmacro def_inst(name, model, inst_impl, opts) do
     quote do
-      @instruments {unquote(model), unquote(child_spec)}
+      @instruments {unquote(name), unquote(model), unquote(inst_impl), unquote(opts)}
     end
   end
 end
