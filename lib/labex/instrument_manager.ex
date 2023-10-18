@@ -41,6 +41,7 @@ defmodule Labex.InstrumentManager do
   def read(key, {model, variable, params}) do
     {query_fmt, answer_fmt} = model.read(variable)
     query = Format.format(query_fmt, params)
+
     read(key, query)
     |> Format.parse(answer_fmt)
   end

@@ -26,6 +26,9 @@ defmodule InstrumentManagerTest do
 
     InstrumentManager.start_instrument(:inst2, DummyInstrument, map: dummy_map)
 
-    assert InstrumentManager.read(:inst2, {MyModel, :a, [channel: "A"]}) == [channel: "A", value: 12.3]
+    assert InstrumentManager.read(:inst2, {MyModel, :a, [channel: "A"]}) == [
+             channel: "A",
+             value: 12.3
+           ]
   end
 end

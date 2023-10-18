@@ -26,17 +26,19 @@ defmodule Labex.Format do
   end
 
   defp expand_parse_format(format) do
-    {regex, keys, types} = Regex.scan(~r/\{(.+?):(.+?)\}/, format)
-    |> Enum.reduce(
-      {format, [], []},
-      fn [pattern, key, type], {regex, keys, types} ->
-        {
-          Regex.replace(~r/#{pattern}/, regex, "(.+)"),
-          [String.to_atom(key) | keys],
-          [type | types]
-        }
-      end
-    )
+    {regex, keys, types} =
+      Regex.scan(~r/\{(.+?):(.+?)\}/, format)
+      |> Enum.reduce(
+        {format, [], []},
+        fn [pattern, key, type], {regex, keys, types} ->
+          {
+            Regex.replace(~r/#{pattern}/, regex, "(.+)"),
+            [String.to_atom(key) | keys],
+            [type | types]
+          }
+        end
+      )
+
     {regex, Enum.reverse(keys), Enum.reverse(types)}
   end
 
