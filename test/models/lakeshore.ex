@@ -2,9 +2,9 @@ defmodule LabexInstruments.Lakeshore do
   alias Labex.Model
   use Model
 
-  def_read(:kelvin, "KRDG? {s:channel}", "{f:temperature}")
-  def_read(:sensor, "SRDG? {s:channel}", "{f:resistance}")
+  def_read(:kelvin, "KRDG? {channel}", "{temperature:float}")
+  def_read(:sensor, "SRDG? {channel}", "{resistance:float}")
 
-  def_write(:setpoint, "SETP {s:channel}, {f:temperature}")
-  def_read(:setpoint, "SETP? {s:channel}")
+  def_write(:setpoint, "SETP {channel}, {temperature:float}")
+  def_read(:setpoint, "SETP? {channel}")
 end
