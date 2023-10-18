@@ -6,12 +6,12 @@ defmodule ModelTest do
     defmodule SampleModel do
       use Labex.Model
 
-      def_read(:kelvin, "KRDG? ~s", "~f")
-      def_write(:setp, "SETP ~s, ~p")
+      def_read(:kelvin, "KRDG? {}", "{}")
+      def_write(:setp, "SETP {}, {}")
     end
 
-    assert SampleModel.read(:kelvin) == {"KRDG? ~s\n", "~f\n"}
-    assert SampleModel.write(:setp) == "SETP ~s, ~p\n"
+    assert SampleModel.read(:kelvin) == {"KRDG? {}\n", "{}\n"}
+    assert SampleModel.write(:setp) == "SETP {}, {}\n"
   end
 
   test "termination character" do
