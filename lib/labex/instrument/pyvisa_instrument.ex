@@ -12,7 +12,10 @@ defmodule Labex.Instrument.PyvisaInstrument do
 
   @impl GenServer
   def handle_call({:read, message}, _from, opts = {pid, _python_exec, address}) do
-    answer = :python.call(pid, :communicate, :query, [address, message])
+    answer =
+      :python.call(pid, :communicate, :query, [address, message])
+      |> to_string()
+
     {:reply, answer, opts}
   end
 
