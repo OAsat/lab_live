@@ -12,13 +12,13 @@ defmodule Labex.Measurement do
       end
 
       def read(name, cmd, args) do
-        {model, _inst, opts} = Map.get(instruments(), name)
-        Labex.InstrumentManager.read(name, {model, cmd, opts})
+        {model, _inst, _opts} = Map.get(instruments(), name)
+        Labex.InstrumentManager.read(name, {model, cmd, args})
       end
 
       def write(name, cmd, args) do
-        {model, _inst, opts} = Map.get(instruments(), name)
-        Labex.InstrumentManager.write(name, {model, cmd, opts})
+        {model, _inst, _opts} = Map.get(instruments(), name)
+        Labex.InstrumentManager.write(name, {model, cmd, args})
       end
     end
   end
