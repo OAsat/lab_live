@@ -21,7 +21,8 @@ defmodule Labex.MixProject do
   defp deps do
     [
       {:erlport, "~> 0.11.0"},
-      {:ex_doc, "~> 0.30.8", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.30.8", only: :dev, runtime: false},
+      {:stream_data, "~> 0.5", only: :test}
     ]
   end
 end
