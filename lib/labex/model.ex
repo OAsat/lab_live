@@ -1,4 +1,6 @@
 defmodule Labex.Model do
+  alias Labex.Format
+
   defmacro __using__(_opts) do
     quote do
       import unquote(__MODULE__)
@@ -20,8 +22,14 @@ defmodule Labex.Model do
   @spec def_read(name :: atom(), String.t(), String.t()) :: Macro.t()
   defmacro def_read(name, query_format, answer_format) do
     quote do
-      def read(unquote(name)) do
-        {unquote(query_format) |> with_read_term(), unquote(answer_format) |> with_read_term()}
+      def read(unquote(name), opts) do
+        query =
+          unquote(query_format)
+          |> Format.format(opts)
+          |> with_write_term()
+
+        parser = fn answer -> Format.parse(answer, unquote(answer_format)) end
+        {query, parser}
       end
     end
   end
@@ -29,8 +37,10 @@ defmodule Labex.Model do
   @spec def_write(name :: atom(), String.t()) :: Macro.t()
   defmacro def_write(name, query_format) do
     quote do
-      def write(unquote(name)) do
-        unquote(query_format) |> with_read_term()
+      def write(unquote(name), opts) do
+        unquote(query_format)
+        |> Format.format(opts)
+        |> with_write_term()
       end
     end
   end
