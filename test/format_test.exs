@@ -13,4 +13,18 @@ defmodule FormatTest do
                Labex.Format.format("ab {{term1}} cd {{term2}} ef", term1: term1, term2: term2)
     end
   end
+
+  test "parse/2" do
+    check all(
+            val1 <- string(:alphanumeric, min_length: 1),
+            val2 <- float(),
+            val3 <- integer()
+          ) do
+      assert [val1: val1, val2: val2, val3: val3] ==
+               Labex.Format.parse(
+                 "s #{val1},#{val2},#{val3} e",
+                 "s {{val1:str}},{{val2:float}},{{val3:int}} e"
+               )
+    end
+  end
 end

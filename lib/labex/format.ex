@@ -39,27 +39,13 @@ defmodule Labex.Format do
   end
 
   @spec extract_keys_and_types(binary()) :: Keyword.t()
-  @doc """
-  Returns a keyword-list of keys:types from a format string.
-
-      iex> Labex.Format.extract_keys_and_types("message:{{key1:some_type}},{{key2}}")
-      [key1: :some_type, key2: nil]
-  """
-  def extract_keys_and_types(format) do
+  defp extract_keys_and_types(format) do
     Regex.scan(@regex, format)
     |> Enum.map(fn [_, pattern] -> split_key_and_type(pattern) end)
   end
 
   @spec split_key_and_type(binary()) :: {atom(), atom()}
-  @doc """
-  Splits a string to a key and a type.
-
-      iex> Labex.Format.split_key_and_type("key1:str")
-      {:key1, :str}
-      iex> Labex.Format.split_key_and_type("key1")
-      {:key1, nil}
-  """
-  def split_key_and_type(key) do
+  defp split_key_and_type(key) do
     case String.split(key, ":") do
       [name, type] -> {String.to_atom(name), String.to_atom(type)}
       [name] -> {String.to_atom(name), nil}
@@ -67,19 +53,7 @@ defmodule Labex.Format do
   end
 
   @spec parse_func(:float | :int | :str) :: (binary() -> any())
-  @doc """
-  Returns a function that parses a string to a given type.
-
-      iex> Labex.Format.parse_func(:str).("hello")
-      "hello"
-      iex> Labex.Format.parse_func(:float).("12.34")
-      12.34
-      iex> Labex.Format.parse_func(:int).("1234")
-      1234
-      iex> Labex.Format.parse_func(:unknown)
-      ** (RuntimeError) Unknown type: unknown
-  """
-  def parse_func(type) do
+  defp parse_func(type) do
     case type do
       :str -> & &1
       :float -> &elem(Float.parse(&1), 0)
