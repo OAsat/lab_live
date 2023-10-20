@@ -32,7 +32,12 @@ defmodule LabLive.Model do
           |> Format.format(opts)
           |> with_write_term()
 
-        parser = fn answer -> Format.parse(answer, unquote(answer_format)) end
+        answer_format = unquote(answer_format) |> with_read_term()
+
+        parser = fn answer ->
+          Format.parse(answer, answer_format)
+        end
+
         {query, parser}
       end
     end
