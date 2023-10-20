@@ -1,27 +1,47 @@
 defmodule ModelTest do
   use ExUnit.Case
+  use ExUnitProperties
   doctest Labex.Model
 
-  test "def model" do
-    defmodule SampleModel do
-      use Labex.Model
+  defmodule DummyModel do
+    use Labex.Model
 
-      def_read(:kelvin, "KRDG? {}", "{}")
-      def_write(:setp, "SETP {}, {}")
-    end
-
-    assert SampleModel.read(:kelvin) == {"KRDG? {}\n", "{}\n"}
-    assert SampleModel.write(:setp) == "SETP {}, {}\n"
+    def_write(:alpha, "query,{{param1}}{{param2}}")
+    def_read(:alpha, "query,{{param}}", "answer,{{value:float}}")
   end
 
   test "termination character" do
-    defmodule SampleModel2 do
+    defmodule CheckTerm do
       use Labex.Model
 
       @write_termination "\r"
     end
 
-    assert SampleModel2.write_termination() == "\r"
-    assert SampleModel2.read_termination() == "\n"
+    assert CheckTerm.write_termination() == "\r"
+    assert CheckTerm.read_termination() == "\n"
+  end
+
+  test "def_write/2" do
+    check all(
+            param1 <- one_of([boolean(), integer(), binary(), float(), atom(:alphanumeric)]),
+            param2 <- one_of([boolean(), integer(), binary(), float(), atom(:alphanumeric)])
+          ) do
+      assert "query,#{param1}#{param2}\n" ==
+               DummyModel.write(:alpha, param1: param1, param2: param2)
+
+      assert [alpha: "query,{{param1}}{{param2}}"] == DummyModel.write_formats()
+    end
+  end
+
+  test "def_read/2" do
+    check all(
+            param <- string(:alphanumeric, min_length: 1),
+            value <- float()
+          ) do
+      {query, parser} = DummyModel.read(:alpha, param: param)
+      assert query == "query,#{param}\n"
+      assert parser.("answer,#{value}") == [value: value]
+      assert [alpha: {"query,{{param}}", "answer,{{value:float}}"}] == DummyModel.read_formats()
+    end
   end
 end
