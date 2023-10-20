@@ -27,6 +27,7 @@ defmodule ModelTest do
             param2 <- one_of([boolean(), integer(), binary(), float(), atom(:alphanumeric)])
           ) do
       assert "query,#{param1}#{param2}\n" == DummyModel.write(:alpha, param1: param1, param2: param2)
+      assert [alpha: "query,{{param1}}{{param2}}"] == DummyModel.write_formats()
     end
   end
 
@@ -38,6 +39,7 @@ defmodule ModelTest do
       {query, parser} = DummyModel.read(:alpha, param: param)
       assert query == "query,#{param}\n"
       assert parser.("answer,#{value}") == [value: value]
+      assert [alpha: {"query,{{param}}", "answer,{{value:float}}"}] == DummyModel.read_formats()
     end
   end
 end

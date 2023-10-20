@@ -12,10 +12,22 @@ defmodule Labex.Format do
   """
   def parse(str, format) do
     keys_and_types = extract_keys_and_types(format)
-    regex = String.replace(format, @regex, "(.+)")
-    [_ | values] = Regex.run(~r/#{regex}/, str)
+    values = format_to_regex(format) |> extract_values(str)
+
     Enum.zip(values, keys_and_types)
     |> Enum.map(fn {value, {key, type}} -> {key, parse_func(type).(value)} end)
+  end
+
+  @spec format_to_regex(binary()) :: Regex.t()
+  def format_to_regex(format) do
+    regex = String.replace(format, @regex, "(.+)")
+    ~r/#{regex}/
+  end
+
+  @spec extract_values(Regex.t(), binary()) :: [binary() | {integer(), integer()}]
+  def extract_values(regex, str) do
+    [_ | values] = Regex.run(regex, str)
+    values
   end
 
   @spec format(binary(), Keyword.t()) :: binary()
@@ -58,7 +70,7 @@ defmodule Labex.Format do
       :str -> & &1
       :float -> &elem(Float.parse(&1), 0)
       :int -> &String.to_integer(&1)
-      _ -> raise "Unknown type: #{type}"
+      _ -> & &1
     end
   end
 end
