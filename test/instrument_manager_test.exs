@@ -1,12 +1,12 @@
 defmodule InstrumentManagerTest do
-  alias Labex.Instrument.DummyInstrument
-  alias Labex.InstrumentManager, as: Im
+  alias LabLive.Instrument.DummyInstrument
+  alias LabLive.InstrumentManager, as: Im
   use ExUnit.Case
   doctest Im
 
   test "register and lookup" do
     defmodule DummyModel do
-      use Labex.Model
+      use LabLive.Model
 
       def_read(:a, "READ:{{channel}}", "ANSWER:{{channel:str}} {{value:float}}K")
       def_write(:a, "WRITE:{{channel}}")

@@ -1,9 +1,9 @@
-defmodule Labex.StoreManager do
-  alias Labex.Store
+defmodule LabLive.StoreManager do
+  alias LabLive.Store
   use Supervisor
 
-  @registry Labex.StoreRegistry
-  @supervisor Labex.StoreSupervisor
+  @registry LabLive.StoreRegistry
+  @supervisor LabLive.StoreSupervisor
 
   @impl Supervisor
   def init(_init_arg) do
@@ -21,7 +21,7 @@ defmodule Labex.StoreManager do
 
   def start_agent(key) do
     name = via_name(key)
-    DynamicSupervisor.start_child(@supervisor, {Labex.Store, {name, :undefined}})
+    DynamicSupervisor.start_child(@supervisor, {LabLive.Store, {name, :undefined}})
   end
 
   def lookup(key) do

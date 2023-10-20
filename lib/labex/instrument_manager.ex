@@ -1,8 +1,8 @@
-defmodule Labex.InstrumentManager do
+defmodule LabLive.InstrumentManager do
   use Supervisor
 
-  @registry Labex.InstrumentRegistry
-  @supervisor Labex.InstrumentSupervisor
+  @registry LabLive.InstrumentRegistry
+  @supervisor LabLive.InstrumentSupervisor
 
   @impl Supervisor
   def init(_init_arg) do

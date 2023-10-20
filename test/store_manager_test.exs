@@ -1,5 +1,5 @@
 defmodule StoreManagerTest do
-  alias Labex.StoreManager
+  alias LabLive.StoreManager
   use ExUnit.Case
   doctest StoreManager
 

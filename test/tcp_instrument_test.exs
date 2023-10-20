@@ -1,5 +1,5 @@
 defmodule TcpInstrumentTest do
-  alias Labex.Instrument.TcpInstrument
+  alias LabLive.Instrument.TcpInstrument
   use ExUnit.Case
   doctest TcpInstrument
 

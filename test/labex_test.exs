@@ -1,4 +1,4 @@
-defmodule LabexTest do
+defmodule LabLiveTest do
   use ExUnit.Case
-  doctest Labex
+  doctest LabLive
 end

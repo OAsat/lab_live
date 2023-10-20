@@ -1,5 +1,5 @@
-defmodule Labex.Instrument.TcpInstrument do
-  alias Labex.Instrument
+defmodule LabLive.Instrument.TcpInstrument do
+  alias LabLive.Instrument
 
   use GenServer
   @behaviour Instrument

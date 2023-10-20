@@ -1,9 +1,9 @@
-defmodule Labex.MixProject do
+defmodule LabLive.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :labex,
+      app: :lab_live,
       version: "0.1.0",
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
@@ -14,7 +14,7 @@ defmodule Labex.MixProject do
   def application do
     [
       extra_applications: [:logger, :eex, :wx, :observer, :runtime_tools],
-      mod: {Labex.Application, []}
+      mod: {LabLive.Application, []}
     ]
   end
 

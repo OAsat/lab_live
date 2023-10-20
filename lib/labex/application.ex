@@ -1,9 +1,9 @@
-defmodule Labex.Application do
+defmodule LabLive.Application do
   @moduledoc false
 
   use Application
-  alias Labex.StoreManager
-  alias Labex.InstrumentManager
+  alias LabLive.StoreManager
+  alias LabLive.InstrumentManager
 
   @impl true
   def start(_type, _args) do
@@ -12,7 +12,7 @@ defmodule Labex.Application do
       StoreManager
     ]
 
-    opts = [strategy: :one_for_all, name: Labex.Supervisor]
+    opts = [strategy: :one_for_all, name: LabLive.Supervisor]
     Supervisor.start_link(children, opts)
   end
 end

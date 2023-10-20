@@ -1,4 +1,4 @@
-defmodule Labex.Format do
+defmodule LabLive.Format do
   @moduledoc """
   Modules for formatting and parsing messages.
   """
@@ -7,7 +7,7 @@ defmodule Labex.Format do
 
   @doc """
   Parses string to a keyword list.
-      iex> Labex.Format.parse("message:hello,12,3.4,end", "message:{{key1:str}},{{key2:int}},{{key3:float}},end")
+      iex> LabLive.Format.parse("message:hello,12,3.4,end", "message:{{key1:str}},{{key2:int}},{{key3:float}},end")
       [key1: "hello", key2: 12, key3: 3.4]
   """
   def parse(str, format) do
@@ -34,9 +34,9 @@ defmodule Labex.Format do
   @doc """
   Formats a keyword list to string.
 
-      iex> Labex.Format.format("message:{{key1}},{{key2}},{{key3}}:end", key1: "hello", key2: 12, key3: 3.4)
+      iex> LabLive.Format.format("message:{{key1}},{{key2}},{{key3}}:end", key1: "hello", key2: 12, key3: 3.4)
       "message:hello,12,3.4:end"
-      iex> Labex.Format.format("message")
+      iex> LabLive.Format.format("message")
       "message"
   """
   def format(format, kw_list \\ []) do

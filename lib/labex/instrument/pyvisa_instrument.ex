@@ -1,9 +1,9 @@
-defmodule Labex.Instrument.PyvisaInstrument do
-  alias Labex.Instrument
+defmodule LabLive.Instrument.PyvisaInstrument do
+  alias LabLive.Instrument
 
   use GenServer
   @behaviour Instrument
-  @python_src File.cwd!() |> Path.join("python/labex_pyvisa") |> to_charlist()
+  @python_src File.cwd!() |> Path.join("python/lab_live_pyvisa") |> to_charlist()
 
   @impl GenServer
   def init({python_exec, address}) do

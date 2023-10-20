@@ -1,5 +1,5 @@
 defmodule DummyInstrumentTest do
-  alias Labex.Instrument.DummyInstrument
+  alias LabLive.Instrument.DummyInstrument
   use ExUnit.Case
   doctest DummyInstrument
 

@@ -1,10 +1,10 @@
 defmodule ModelTest do
   use ExUnit.Case
   use ExUnitProperties
-  doctest Labex.Model
+  doctest LabLive.Model
 
   defmodule DummyModel do
-    use Labex.Model
+    use LabLive.Model
 
     def_write(:alpha, "query,{{param1}}{{param2}}")
     def_read(:alpha, "query,{{param}}", "answer,{{value:float}}")
@@ -12,7 +12,7 @@ defmodule ModelTest do
 
   test "termination character" do
     defmodule CheckTerm do
-      use Labex.Model
+      use LabLive.Model
 
       @write_termination "\r"
     end

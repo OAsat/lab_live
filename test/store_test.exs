@@ -1,7 +1,7 @@
 defmodule StoreTest do
-  alias Labex.Store
+  alias LabLive.Store
   use ExUnit.Case
-  doctest Labex.Store
+  doctest LabLive.Store
 
   test "start" do
     {:ok, _pid} = Store.start_link({:var1, :undefined})

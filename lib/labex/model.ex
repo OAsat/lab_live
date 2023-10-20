@@ -1,5 +1,5 @@
-defmodule Labex.Model do
-  alias Labex.Format
+defmodule LabLive.Model do
+  alias LabLive.Format
 
   defmacro __using__(_opts) do
     quote do

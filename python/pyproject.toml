@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "labex-pyvisa"
+name = "lab-live-pyvisa"
 version = "0.1.0"
 description = ""
 authors = [""]

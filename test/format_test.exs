@@ -2,7 +2,7 @@ defmodule FormatTest do
   use ExUnit.Case
   use ExUnitProperties
 
-  doctest Labex.Format
+  doctest LabLive.Format
 
   test "format/2" do
     check all(
@@ -10,7 +10,7 @@ defmodule FormatTest do
             term2 <- one_of([boolean(), integer(), binary(), float(), atom(:alphanumeric)])
           ) do
       assert "ab #{term1} cd #{term2} ef" ==
-               Labex.Format.format("ab {{term1}} cd {{term2}} ef", term1: term1, term2: term2)
+               LabLive.Format.format("ab {{term1}} cd {{term2}} ef", term1: term1, term2: term2)
     end
   end
 
@@ -21,7 +21,7 @@ defmodule FormatTest do
             val3 <- integer()
           ) do
       assert [val1: val1, val2: val2, val3: val3] ==
-               Labex.Format.parse(
+               LabLive.Format.parse(
                  "s #{val1},#{val2},#{val3} e",
                  "s {{val1:str}},{{val2:float}},{{val3:int}} e"
                )

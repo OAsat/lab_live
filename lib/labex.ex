@@ -1,6 +1,6 @@
-defmodule Labex do
+defmodule LabLive do
   @moduledoc """
-  Documentation for `Labex`.
+  Documentation for `LabLive`.
   """
 
   def run(_module, _) do
