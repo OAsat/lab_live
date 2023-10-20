@@ -1,9 +1,9 @@
-defmodule LabLive.StoreManager do
-  alias LabLive.Store
+defmodule LabLive.VariableManager do
+  alias LabLive.Variable
   use Supervisor
 
-  @registry LabLive.StoreRegistry
-  @supervisor LabLive.StoreSupervisor
+  @registry LabLive.VariableRegistry
+  @supervisor LabLive.VariableSupervisor
 
   @impl Supervisor
   def init(_init_arg) do
@@ -21,7 +21,7 @@ defmodule LabLive.StoreManager do
 
   def start_agent(key) do
     name = via_name(key)
-    DynamicSupervisor.start_child(@supervisor, {LabLive.Store, {name, :undefined}})
+    DynamicSupervisor.start_child(@supervisor, {Variable, {name, :undefined}})
   end
 
   def lookup(key) do
@@ -34,10 +34,10 @@ defmodule LabLive.StoreManager do
   end
 
   def get(key) do
-    lookup(key) |> Store.get()
+    lookup(key) |> Variable.get()
   end
 
   def set(key, value) do
-    lookup(key) |> Store.set(value)
+    lookup(key) |> Variable.set(value)
   end
 end

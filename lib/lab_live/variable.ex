@@ -1,4 +1,4 @@
-defmodule LabLive.Store do
+defmodule LabLive.Variable do
   use Agent
 
   def start_link({name, initial_value}) do
