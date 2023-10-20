@@ -1,5 +1,4 @@
 defmodule Labex.InstrumentManager do
-  alias Labex.Format
   use Supervisor
 
   @registry Labex.InstrumentRegistry
@@ -66,14 +65,12 @@ defmodule Labex.InstrumentManager do
   end
 
   def read(key, {model, variable, opts}) do
-    {query_fmt, answer_fmt} = model.read(variable)
-    query = Format.format(query_fmt, opts)
+    {query, parser} = model.read(variable, opts)
 
-    read(key, query)
-    |> Format.parse(answer_fmt)
+    read(key, query) |> parser.()
   end
 
-  def read(key, variable, opts \\ []) do
+  def read(key, variable, opts \\ []) when is_atom(variable) do
     {_pid, _module, model} = lookup(key)
     read(key, {model, variable, opts})
   end
@@ -85,13 +82,12 @@ defmodule Labex.InstrumentManager do
     end
   end
 
-  def write(key, {model, variable, params}) do
-    query_fmt = model.write(variable)
-    query = Format.format(query_fmt, params)
+  def write(key, {model, variable, opts}) do
+    query = model.write(variable, opts)
     write(key, query)
   end
 
-  def write(key, variable, opts \\ []) do
+  def write(key, variable, opts \\ []) when is_atom(variable) do
     {_pid, _module, model} = lookup(key)
     write(key, {model, variable, opts})
   end

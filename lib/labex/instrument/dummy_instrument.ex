@@ -16,7 +16,11 @@ defmodule Labex.Instrument.DummyInstrument do
   end
 
   @impl GenServer
-  def handle_cast({:write, _message}, mapping) do
+  def handle_cast({:write, message}, mapping) do
+    if not Map.has_key?(mapping, message) do
+      raise "Write message #{message} not expected."
+    end
+
     {:noreply, mapping}
   end
 

@@ -26,7 +26,9 @@ defmodule ModelTest do
             param1 <- one_of([boolean(), integer(), binary(), float(), atom(:alphanumeric)]),
             param2 <- one_of([boolean(), integer(), binary(), float(), atom(:alphanumeric)])
           ) do
-      assert "query,#{param1}#{param2}\n" == DummyModel.write(:alpha, param1: param1, param2: param2)
+      assert "query,#{param1}#{param2}\n" ==
+               DummyModel.write(:alpha, param1: param1, param2: param2)
+
       assert [alpha: "query,{{param1}}{{param2}}"] == DummyModel.write_formats()
     end
   end
