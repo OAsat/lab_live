@@ -19,9 +19,19 @@ defmodule LabLive.VariableManager do
     Supervisor.start_link(__MODULE__, init_arg, name: __MODULE__)
   end
 
-  def start_agent(key) do
+  def start_variable({key, opts}) when is_atom(key) and is_list(opts) do
     name = via_name(key)
-    DynamicSupervisor.start_child(@supervisor, {Variable, {name, :undefined}})
+    DynamicSupervisor.start_child(@supervisor, {Variable, {name, opts}})
+  end
+
+  def start_variable(key) when is_atom(key) do
+    start_variable({key, []})
+  end
+
+  def start_variables(variables) when is_list(variables) do
+    for variable <- variables do
+      start_variable(variable)
+    end
   end
 
   def lookup(key) do

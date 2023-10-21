@@ -11,7 +11,7 @@ defmodule VariableTest do
       name = :"name#{i}"
       max_size = Enum.random(1..resource_size)
       times_append = Enum.random(1..resource_size)
-      values = repeatedly(&(:rand.uniform/0)) |> Enum.take(resource_size + 1)
+      values = repeatedly(&:rand.uniform/0) |> Enum.take(resource_size + 1)
 
       {:ok, pid} = Variable.start_link({:"#{name}", max_size: max_size})
 
@@ -22,19 +22,20 @@ defmodule VariableTest do
           times_append
         end
 
-      appended = for i <- 0..(times_append - 1) do
-        current_size = Variable.stats(pid).size
+      appended =
+        for i <- 0..(times_append - 1) do
+          current_size = Variable.stats(pid).size
 
-        if i> max_size do
-          assert current_size == max_size
-        else
-          assert current_size == i
+          if i > max_size do
+            assert current_size == max_size
+          else
+            assert current_size == i
+          end
+
+          value = values |> Enum.at(i)
+          Variable.append(pid, value)
+          value
         end
-
-        value = values |> Enum.at(i)
-        Variable.append(pid, value)
-        value
-      end
 
       last =
         case times_append do
@@ -49,8 +50,18 @@ defmodule VariableTest do
 
       assert last == Variable.latest(pid)
       assert size == stats.size
+      assert in_queue == Variable.as_list(pid) |> Enum.reverse()
       assert_in_delta(sum, stats.sum, 1.0e-10)
       assert_in_delta(square_sum, stats.square_sum, 1.0e-10)
     end
+  end
+
+  test "single" do
+    {:ok, pid} = Variable.start_link(:test_single)
+    assert :empty == Variable.latest(pid)
+    assert :ok == Variable.append(pid, 10)
+    assert 10 == Variable.latest(pid)
+    assert 10 == Variable.append(pid, 20)
+    assert 20 == Variable.latest(pid)
   end
 end

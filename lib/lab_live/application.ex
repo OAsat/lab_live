@@ -12,7 +12,7 @@ defmodule LabLive.Application do
       VariableManager
     ]
 
-    opts = [strategy: :one_for_all, name: LabLive.Supervisor]
+    opts = [strategy: :one_for_one, name: LabLive.Supervisor]
     Supervisor.start_link(children, opts)
   end
 end

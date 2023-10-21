@@ -5,6 +5,10 @@ defmodule LabLive.Variable do
     GenServer.start_link(__MODULE__, opts, name: name)
   end
 
+  def start_link(name) when is_atom(name) do
+    start_link({name, []})
+  end
+
   @impl GenServer
   def init(opts) do
     init = Keyword.get(opts, :init, nil)
@@ -45,6 +49,11 @@ defmodule LabLive.Variable do
   @impl GenServer
   def handle_call(:stats, _from, state = {_q, _max_size, q_stat}) do
     {:reply, q_stat, state}
+  end
+
+  @impl GenServer
+  def handle_call(:as_list, _from, state = {q, _, _}) do
+    {:reply, :queue.to_list(q), state}
   end
 
   @impl GenServer
@@ -101,5 +110,9 @@ defmodule LabLive.Variable do
 
   def refresh(pid) do
     GenServer.cast(pid, :refresh)
+  end
+
+  def as_list(pid) do
+    GenServer.call(pid, :as_list)
   end
 end

@@ -4,9 +4,13 @@ defmodule VariableManagerTest do
   doctest VariableManager
 
   test "register and lookup" do
-    {:ok, _pid} = VariableManager.start_agent(:var1)
-    assert :undefined = VariableManager.get(:var1)
-    assert :ok = VariableManager.set(:var1, 10)
-    assert 10 = VariableManager.get(:var1)
+    variables = [
+      :var1,
+      {:var2, init: 100}
+    ]
+
+    VariableManager.start_variables(variables)
+    assert :empty = VariableManager.get(:var1)
+    assert 100 = VariableManager.get(:var2)
   end
 end
