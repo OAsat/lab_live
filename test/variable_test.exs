@@ -64,4 +64,52 @@ defmodule VariableTest do
     assert 10 == Variable.append(pid, 20)
     assert 20 == Variable.latest(pid)
   end
+
+  test "non number" do
+    resource_size = 100
+
+    for i <- 0..100 do
+      name = :"non_number#{i}"
+      max_size = Enum.random(1..resource_size)
+      times_append = Enum.random(1..resource_size)
+      values = atom(:alphanumeric) |> Enum.take(resource_size + 1)
+
+      {:ok, pid} = Variable.start_link({:"#{name}", max_size: max_size})
+
+      size =
+        if max_size < times_append do
+          max_size
+        else
+          times_append
+        end
+
+      appended =
+        for i <- 0..(times_append - 1) do
+          current_size = Variable.stats(pid).size
+
+          if i > max_size do
+            assert current_size == max_size
+          else
+            assert current_size == i
+          end
+
+          value = values |> Enum.at(i)
+          Variable.append(pid, value)
+          value
+        end
+
+      last =
+        case times_append do
+          0 -> :empty
+          _ -> List.last(appended)
+        end
+
+      stats = Variable.stats(pid)
+      in_queue = Enum.reverse(appended) |> Enum.take(max_size)
+
+      assert last == Variable.latest(pid)
+      assert size == stats.size
+      assert in_queue == Variable.as_list(pid) |> Enum.reverse()
+    end
+  end
 end

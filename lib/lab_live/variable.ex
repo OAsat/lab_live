@@ -18,8 +18,7 @@ defmodule LabLive.Variable do
       raise "max_size must be at least 1."
     end
 
-    q = init_queue(init)
-    q_stat = new_q_stat(q)
+    {q, q_stat} = init_queue(init)
 
     {:ok, {q, max_size, q_stat}}
   end
@@ -58,42 +57,50 @@ defmodule LabLive.Variable do
 
   @impl GenServer
   def handle_cast(:refresh, {_q, max_size, _q_stat}) do
-    q = init_queue(nil)
-    {:noreply, {q, max_size, new_q_stat(q)}}
+    {q, q_stat} = init_queue(nil)
+    {:noreply, {q, max_size, q_stat}}
   end
 
   defp init_queue(nil) do
-    :queue.new()
+    {:queue.new(), %{size: 0, sum: 0, square_sum: 0}}
   end
 
   defp init_queue(value) do
-    :queue.in(value, :queue.new())
-  end
+    q = :queue.in(value, :queue.new())
 
-  defp new_q_stat(q) do
-    list = :queue.to_list(q)
-
-    %{
-      size: length(list),
-      sum: Enum.sum(list),
-      square_sum: Enum.reduce(list, 0, fn x, acc -> acc + x * x end)
-    }
+    if is_number(value) do
+      {q, %{size: 1, sum: value, square_sum: value * value}}
+    else
+      {q, %{size: 1}}
+    end
   end
 
   defp append_to_q_stat(q_stat, value) do
-    %{
-      size: q_stat.size + 1,
-      sum: q_stat.sum + value,
-      square_sum: q_stat.square_sum + value * value
-    }
+    if is_number(value) do
+      %{
+        size: q_stat.size + 1,
+        sum: q_stat.sum + value,
+        square_sum: q_stat.square_sum + value * value
+      }
+    else
+      %{
+        size: q_stat.size + 1
+      }
+    end
   end
 
   defp remove_from_q_stat(q_stat, value) do
-    %{
-      size: q_stat.size - 1,
-      sum: q_stat.sum - value,
-      square_sum: q_stat.square_sum - value * value
-    }
+    if is_number(value) do
+      %{
+        size: q_stat.size - 1,
+        sum: q_stat.sum - value,
+        square_sum: q_stat.square_sum - value * value
+      }
+    else
+      %{
+        size: q_stat.size - 1
+      }
+    end
   end
 
   def append(pid, value) do
