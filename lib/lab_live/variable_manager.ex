@@ -34,10 +34,10 @@ defmodule LabLive.VariableManager do
   end
 
   def get(key) do
-    lookup(key) |> Variable.get()
+    lookup(key) |> Variable.latest()
   end
 
   def set(key, value) do
-    lookup(key) |> Variable.set(value)
+    lookup(key) |> Variable.append(value)
   end
 end
