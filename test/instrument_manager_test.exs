@@ -28,12 +28,12 @@ defmodule InstrumentManagerTest do
 
     assert Im.read(:inst1, "READ:A\n") == "ANSWER:A 12.3K\n"
     assert Im.write(:inst1, "WRITE:A\n") == :ok
-    assert Im.read(:inst1, {DummyModel, :a, channel: "A"}) == [channel: "A", value: 12.3]
-    assert Im.read(:inst1, {DummyModel, :b, []}) == [value: 45.6]
+    assert Im.read(:inst1, {DummyModel, :a, channel: "A"}) == %{channel: "A", value: 12.3}
+    assert Im.read(:inst1, {DummyModel, :b, []}) == %{value: 45.6}
     assert Im.write(:inst1, {DummyModel, :a, channel: "A"}) == :ok
 
-    assert Im.read(:inst2, :a, channel: "A") == [channel: "A", value: 12.3]
-    assert Im.read(:inst2, :b) == [value: 45.6]
+    assert Im.read(:inst2, :a, channel: "A") == %{channel: "A", value: 12.3}
+    assert Im.read(:inst2, :b) == %{value: 45.6}
     assert Im.write(:inst2, :a, channel: "A") == :ok
   end
 end

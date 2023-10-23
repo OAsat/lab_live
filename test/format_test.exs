@@ -20,7 +20,7 @@ defmodule FormatTest do
             val2 <- float(),
             val3 <- integer()
           ) do
-      assert [val1: val1, val2: val2, val3: val3] ==
+      assert %{val1: val1, val2: val2, val3: val3} ==
                LabLive.Format.parse(
                  "s #{val1},#{val2},#{val3} e",
                  "s {{val1:str}},{{val2:float}},{{val3:int}} e"

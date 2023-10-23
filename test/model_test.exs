@@ -40,7 +40,7 @@ defmodule ModelTest do
           ) do
       {query, parser} = DummyModel.read(:alpha, param: param)
       assert query == "query,#{param}\n"
-      assert parser.("answer,#{value}\n") == [value: value]
+      assert parser.("answer,#{value}\n") == %{value: value}
       assert [alpha: {"query,{{param}}", "answer,{{value:float}}"}] == DummyModel.read_formats()
     end
   end
