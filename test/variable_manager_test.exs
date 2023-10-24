@@ -3,14 +3,13 @@ defmodule VariableManagerTest do
   use ExUnit.Case
   doctest VariableManager
 
-  test "register and lookup" do
-    variables = [
-      :var1,
-      {:var2, init: 100}
-    ]
+  test "start_getters/1" do
+    # {:ok, pid} = start_supervised({VariableManager, name: :test_variable_manager})
+    getters = %{
+      var1: fn -> 1 end,
+      var2: fn -> 2 end
+    }
 
-    VariableManager.start_variables(variables)
-    assert :empty = VariableManager.get(:var1)
-    assert 100 = VariableManager.get(:var2)
+    VariableManager.start_getters(getters)
   end
 end

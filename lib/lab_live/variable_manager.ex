@@ -1,12 +1,13 @@
 defmodule LabLive.VariableManager do
-  alias LabLive.Variable
+  alias LabLive.Setter
+  alias LabLive.Getter
   use Supervisor
 
   @registry LabLive.VariableRegistry
   @supervisor LabLive.VariableSupervisor
 
   @impl Supervisor
-  def init(_init_arg) do
+  def init(:ok) do
     children = [
       {DynamicSupervisor, name: @supervisor, strategy: :one_for_one},
       {Registry, keys: :unique, name: @registry}
@@ -15,39 +16,55 @@ defmodule LabLive.VariableManager do
     Supervisor.init(children, strategy: :one_for_all)
   end
 
-  def start_link(init_arg) do
-    Supervisor.start_link(__MODULE__, init_arg, name: __MODULE__)
+  @spec start_link(any()) :: Supervisor.on_start()
+  def start_link(_) do
+    Supervisor.start_link(__MODULE__, :ok, name: __MODULE__)
   end
 
-  def start_variable({key, opts}) when is_atom(key) and is_list(opts) do
-    name = via_name(key)
-    DynamicSupervisor.start_child(@supervisor, {Variable, {name, opts}})
+  @spec start_setter(atom(), function()) :: DynamicSupervisor.on_start_child()
+  def start_setter(name, setter) do
+    via = via_name(name)
+    DynamicSupervisor.start_child(@supervisor, {Setter, {via, setter}})
   end
 
-  def start_variable(key) when is_atom(key) do
-    start_variable({key, []})
+  @spec start_setters(%{atom() => function()}) :: %{atom() => DynamicSupervisor.on_start_child()}
+  def start_setters(map) do
+    for {name, setter} <- map do
+      {name, start_setter(name, setter)}
+    end
+    |> Enum.into(%{})
   end
 
-  def start_variables(variables) when is_list(variables) do
-    for variable <- variables do
-      start_variable(variable)
+  @spec start_getter(atom(), function()) :: DynamicSupervisor.on_start_child()
+  def start_getter(name, getter) do
+    via = via_name(name)
+    DynamicSupervisor.start_child(@supervisor, {Getter, {via, getter}})
+  end
+
+  @spec start_getters(%{atom() => function()}) :: %{atom() => DynamicSupervisor.on_start_child()}
+  def start_getters(map) do
+    for {name, getter} <- map do
+      {name, start_getter(name, getter)}
+    end
+    |> Enum.into(%{})
+  end
+
+  defp lookup(key) do
+    case Registry.lookup(@registry, key) do
+      [] -> raise "Variable #{key} not found."
+      [{pid, _}] -> pid
     end
   end
 
-  def lookup(key) do
-    [{pid, _}] = Registry.lookup(@registry, key)
-    pid
-  end
-
-  def via_name(key) do
+  defp via_name(key) do
     {:via, Registry, {@registry, key}}
   end
 
   def get(key) do
-    lookup(key) |> Variable.latest()
+    lookup(key) |> Getter.get()
   end
 
   def set(key, value) do
-    lookup(key) |> Variable.append(value)
+    lookup(key) |> Setter.set(value)
   end
 end
