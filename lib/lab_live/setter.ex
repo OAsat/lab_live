@@ -1,27 +1,28 @@
-defmodule LabLive.Settable do
+defmodule LabLive.Setter do
   @moduledoc """
-  Settable.
+  Server to hold function and state.
+  Running `set/2` invokes the setter function and updates the state.
 
   `setter/1`
-      iex> {:ok, pid} = GenServer.start_link(LabLive.Settable, fn v -> v > 0 end)
-      iex> LabLive.Settable.latest(pid)
+      iex> {:ok, pid} = GenServer.start_link(LabLive.Setter, fn v -> v > 0 end)
+      iex> LabLive.Setter.latest(pid)
       nil
-      iex> LabLive.Settable.set(pid, 1)
+      iex> LabLive.Setter.set(pid, 1)
       true
-      iex> LabLive.Settable.latest(pid)
+      iex> LabLive.Setter.latest(pid)
       1
-      iex> LabLive.Settable.set(pid, -1)
+      iex> LabLive.Setter.set(pid, -1)
       false
-      iex> LabLive.Settable.latest(pid)
+      iex> LabLive.Setter.latest(pid)
       -1
 
   `setter/2`
-      iex> {:ok, pid} = GenServer.start_link(LabLive.Settable, fn v, nil -> v; v, old -> v > old end)
-      iex> LabLive.Settable.set(pid, 1)
+      iex> {:ok, pid} = GenServer.start_link(LabLive.Setter, fn v, nil -> v; v, old -> v > old end)
+      iex> LabLive.Setter.set(pid, 1)
       1
-      iex> LabLive.Settable.set(pid, 2)
+      iex> LabLive.Setter.set(pid, 2)
       true
-      iex> LabLive.Settable.set(pid, 1)
+      iex> LabLive.Setter.set(pid, 1)
       false
   """
   use GenServer

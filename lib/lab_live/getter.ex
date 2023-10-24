@@ -1,21 +1,22 @@
-defmodule LabLive.Gettable do
+defmodule LabLive.Getter do
   @moduledoc """
-  Gettable.
+  Server to hold function and state.
+  The state can only be updated by calling the getter function.
 
   `getter/0`
-      iex> {:ok, pid} = GenServer.start_link(LabLive.Gettable, fn -> 1 end)
-      iex> LabLive.Gettable.latest(pid)
+      iex> {:ok, pid} = GenServer.start_link(LabLive.Getter, fn -> 1 end)
+      iex> LabLive.Getter.latest(pid)
       nil
-      iex> LabLive.Gettable.get(pid)
+      iex> LabLive.Getter.get(pid)
       1
-      iex> LabLive.Gettable.latest(pid)
+      iex> LabLive.Getter.latest(pid)
       1
 
   `getter/1`
-      iex> {:ok, pid} = GenServer.start_link(LabLive.Gettable, fn nil -> 1; value -> value + 1 end)
-      iex> LabLive.Gettable.get(pid)
+      iex> {:ok, pid} = GenServer.start_link(LabLive.Getter, fn nil -> 1; value -> value + 1 end)
+      iex> LabLive.Getter.get(pid)
       1
-      iex> LabLive.Gettable.get(pid)
+      iex> LabLive.Getter.get(pid)
       2
   """
   use GenServer

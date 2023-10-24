@@ -1,9 +1,9 @@
-defmodule GettableTest do
-  alias LabLive.Gettable
+defmodule GetterTest do
+  alias LabLive.Getter
   use ExUnit.Case
   use ExUnitProperties
 
-  doctest Gettable
+  doctest Getter
 
   test "getter/0" do
     check all(
@@ -17,11 +17,11 @@ defmodule GettableTest do
         Agent.get(counter, & &1)
       end
 
-      {:ok, pid} = GenServer.start_link(Gettable, getter)
+      {:ok, pid} = GenServer.start_link(Getter, getter)
 
       for i <- 0..n_iter do
-        assert start + i + 1 == Gettable.get(pid)
-        assert start + i + 1 == Gettable.latest(pid)
+        assert start + i + 1 == Getter.get(pid)
+        assert start + i + 1 == Getter.latest(pid)
       end
     end
   end
