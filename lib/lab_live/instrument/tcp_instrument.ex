@@ -31,6 +31,7 @@ defmodule LabLive.Instrument.TcpInstrument do
     if sleep_after > 0 do
       Process.sleep(sleep_after)
     end
+
     {:noreply, opts}
   end
 
@@ -45,6 +46,7 @@ defmodule LabLive.Instrument.TcpInstrument do
     if sleep_after > 0 do
       Process.sleep(sleep_after)
     end
+
     {:noreply, opts}
   end
 

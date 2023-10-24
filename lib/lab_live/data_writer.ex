@@ -12,6 +12,7 @@ defmodule LabLive.DataWriter do
   @impl GenServer
   def handle_call({:write_line, data}, _from, state = {file, labels}) do
     new_line = data_to_string(data, labels)
+
     case IO.binwrite(file, "#{new_line}\n") do
       :ok -> {:reply, new_line, state}
       {:error, reason} -> {:reply, {:error, reason}, state}

@@ -2,19 +2,21 @@ defmodule LabLive.Gettable do
   @moduledoc """
   Store with getter function.
 
-  iex> {:ok, pid} = GenServer.start_link(LabLive.Gettable, fn -> 1 end)
-  iex> LabLive.Gettable.latest(pid)
-  nil
-  iex> LabLive.Gettable.get(pid)
-  1
-  iex> LabLive.Gettable.latest(pid)
-  1
+  `getter/0`
+      iex> {:ok, pid} = GenServer.start_link(LabLive.Gettable, fn -> 1 end)
+      iex> LabLive.Gettable.latest(pid)
+      nil
+      iex> LabLive.Gettable.get(pid)
+      1
+      iex> LabLive.Gettable.latest(pid)
+      1
 
-  iex> {:ok, pid} = GenServer.start_link(LabLive.Gettable, fn nil -> 1; value -> value + 1 end)
-  iex> LabLive.Gettable.get(pid)
-  1
-  iex> LabLive.Gettable.get(pid)
-  2
+  `getter/1`
+      iex> {:ok, pid} = GenServer.start_link(LabLive.Gettable, fn nil -> 1; value -> value + 1 end)
+      iex> LabLive.Gettable.get(pid)
+      1
+      iex> LabLive.Gettable.get(pid)
+      2
   """
   use GenServer
 
@@ -44,11 +46,13 @@ defmodule LabLive.Gettable do
     {:reply, value, {getter, value}}
   end
 
-  def get(pid) do
-    GenServer.call(pid, :get)
+  @spec get(GenServer.server()) :: any()
+  def get(server) do
+    GenServer.call(server, :get)
   end
 
-  def latest(pid) do
-    GenServer.call(pid, :latest)
+  @spec latest(GenServer.server()) :: any()
+  def latest(server) do
+    GenServer.call(server, :latest)
   end
 end
