@@ -1,6 +1,6 @@
 defmodule LabLive.Gettable do
   @moduledoc """
-  Store with getter function.
+  Gettable.
 
   `getter/0`
       iex> {:ok, pid} = GenServer.start_link(LabLive.Gettable, fn -> 1 end)
@@ -20,12 +20,13 @@ defmodule LabLive.Gettable do
   """
   use GenServer
 
+  @spec start_link({GenServer.name(), function()}) :: GenServer.on_start()
   def start_link({name, getter}) do
     GenServer.start_link(__MODULE__, getter, name: name)
   end
 
   @impl GenServer
-  def init(getter) do
+  def init(getter) when is_function(getter, 0) or is_function(getter, 1) do
     {:ok, {getter, nil}}
   end
 
