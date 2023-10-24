@@ -41,19 +41,19 @@ defmodule LabLive.InstrumentManager do
     |> Enum.map(fn i -> start_instrument(i) end)
   end
 
-  def lookup(key) do
-    case Registry.lookup(@registry, key) do
-      [] -> raise "Instrument #{key} not found."
+  defp lookup(inst) do
+    case Registry.lookup(@registry, inst) do
+      [] -> raise "Instrument #{inst} not found."
       [{pid, {module, model}}] -> {pid, module, model}
       [{pid, module}] -> {pid, module}
     end
   end
 
-  def get_via_name(key, module) do
+  defp get_via_name(key, module) do
     {:via, Registry, {@registry, key, module}}
   end
 
-  def get_via_name(key, module, model) do
+  defp get_via_name(key, module, model) do
     {:via, Registry, {@registry, key, {module, model}}}
   end
 
@@ -64,31 +64,31 @@ defmodule LabLive.InstrumentManager do
     end
   end
 
-  def read(key, {model, variable, opts}) do
-    {query, parser} = model.read(variable, opts)
+  def read(inst, {model, query_key, opts}) do
+    {query, parser} = model.read(query_key, opts)
 
-    read(key, query) |> parser.()
+    read(inst, query) |> parser.()
   end
 
-  def read(key, variable, opts \\ []) when is_atom(variable) do
-    {_pid, _module, model} = lookup(key)
-    read(key, {model, variable, opts})
+  def read(inst, query_key, opts \\ []) when is_atom(query_key) do
+    {_pid, _module, model} = lookup(inst)
+    read(inst, {model, query_key, opts})
   end
 
-  def write(key, query) when is_binary(query) do
-    case lookup(key) do
+  def write(inst, query) when is_binary(query) do
+    case lookup(inst) do
       {pid, module, _model} -> module.write(pid, query)
       {pid, module} -> module.write(pid, query)
     end
   end
 
-  def write(key, {model, variable, opts}) do
-    query = model.write(variable, opts)
-    write(key, query)
+  def write(inst, {model, query_key, opts}) do
+    query = model.write(query_key, opts)
+    write(inst, query)
   end
 
-  def write(key, variable, opts \\ []) when is_atom(variable) do
-    {_pid, _module, model} = lookup(key)
-    write(key, {model, variable, opts})
+  def write(inst, query_key, opts \\ []) when is_atom(query_key) do
+    {_pid, _module, model} = lookup(inst)
+    write(inst, {model, query_key, opts})
   end
 end
