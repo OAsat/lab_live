@@ -4,30 +4,51 @@ defmodule LabLive.Instrument.PyvisaInstrument do
   use GenServer
   @behaviour Instrument
   @python_src File.cwd!() |> Path.join("python/lab_live_pyvisa") |> to_charlist()
-
-  @impl GenServer
-  def init({python_exec, address}) do
-    {:ok, {start_python(python_exec), python_exec, address}}
+  defp get_opts(opts) do
+    python = Keyword.get(opts, :python)
+    address = Keyword.get(opts, :address)
+    sleep_after = Keyword.get(opts, :sleep_after, 0)
+    {python, address, sleep_after}
   end
 
   @impl GenServer
-  def handle_call({:read, message}, _from, opts = {pid, _python_exec, address}) do
+  def init(opts) do
+    {python, _address, _sleep_after} = get_opts(opts)
+    python_pid = start_python(python)
+    {:ok, {python_pid, opts}}
+  end
+
+  @impl GenServer
+  def handle_call({:read, message}, from, state = {python_pid, opts}) do
+    {_python, address, sleep_after} = get_opts(opts)
+
     answer =
-      :python.call(pid, :communicate, :query, [address, message])
+      :python.call(python_pid, :communicate, :query, [address, message])
       |> to_string()
 
-    {:reply, answer, opts}
+    if sleep_after > 0 do
+      Process.sleep(sleep_after)
+    end
+
+    GenServer.reply(from, answer)
+    {:noreply, state}
   end
 
   @impl GenServer
-  def handle_cast({:write, message}, opts = {pid, _python_exec, address}) do
-    :python.call(pid, :communicate, :write, [address, message])
-    {:noreply, opts}
+  def handle_cast({:write, message}, state = {python_pid, opts}) do
+    {_python, address, sleep_after} = get_opts(opts)
+    :python.call(python_pid, :communicate, :write, [address, message])
+
+    if sleep_after > 0 do
+      Process.sleep(sleep_after)
+    end
+
+    {:noreply, state}
   end
 
   @impl Instrument
-  def start_link({name, python: python_exec, address: address}) do
-    GenServer.start_link(__MODULE__, {python_exec, address}, name: name)
+  def start_link({name, opts}) do
+    GenServer.start_link(__MODULE__, opts, name: name)
   end
 
   @impl Instrument
