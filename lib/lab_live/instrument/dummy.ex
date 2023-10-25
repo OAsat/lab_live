@@ -1,4 +1,4 @@
-defmodule LabLive.Instrument.DummyInstrument do
+defmodule LabLive.Instrument.Dummy do
   alias LabLive.Instrument
 
   use GenServer

@@ -1,6 +1,6 @@
-defmodule InstrumentManagerTest do
-  alias LabLive.Instrument.DummyInstrument
-  alias LabLive.InstrumentManager, as: Im
+defmodule InstrumentTest do
+  alias LabLive.Instrument.Dummy
+  alias LabLive.Instrument, as: Im
   use ExUnit.Case
   doctest Im
 
@@ -20,8 +20,8 @@ defmodule InstrumentManagerTest do
     }
 
     inst_list = [
-      {:inst1, DummyInstrument, map: dummy_map},
-      {:inst2, DummyModel, DummyInstrument, map: dummy_map}
+      {:inst1, Dummy, map: dummy_map},
+      {:inst2, DummyModel, Dummy, map: dummy_map}
     ]
 
     assert [{:ok, _}, {:ok, _}] = Im.start_instruments(inst_list)

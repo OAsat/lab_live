@@ -3,12 +3,12 @@ defmodule LabLive.Application do
 
   use Application
   alias LabLive.Variable
-  alias LabLive.InstrumentManager
+  alias LabLive.Instrument
 
   @impl true
   def start(_type, _args) do
     children = [
-      InstrumentManager,
+      Instrument,
       Variable
     ]
 

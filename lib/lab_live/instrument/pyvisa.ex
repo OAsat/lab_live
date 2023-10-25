@@ -1,4 +1,4 @@
-defmodule LabLive.Instrument.PyvisaInstrument do
+defmodule LabLive.Instrument.Pyvisa do
   alias LabLive.Instrument
 
   use GenServer

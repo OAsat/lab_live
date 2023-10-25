@@ -1,4 +1,4 @@
-defmodule LabLive.Instrument.TcpInstrument do
+defmodule LabLive.Instrument.Tcp do
   alias LabLive.Instrument
 
   use GenServer
