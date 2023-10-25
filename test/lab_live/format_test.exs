@@ -1,4 +1,4 @@
-defmodule FormatTest do
+defmodule LabLive.FormatTest do
   use ExUnit.Case
   use ExUnitProperties
 

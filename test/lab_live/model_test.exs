@@ -1,4 +1,4 @@
-defmodule ModelTest do
+defmodule LabLive.ModelTest do
   use ExUnit.Case
   use ExUnitProperties
   doctest LabLive.Model

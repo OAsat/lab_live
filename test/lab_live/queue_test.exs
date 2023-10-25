@@ -1,4 +1,4 @@
-defmodule QueueTest do
+defmodule LabLive.QueueTest do
   alias LabLive.Queue
   use ExUnit.Case, async: false
   use ExUnitProperties

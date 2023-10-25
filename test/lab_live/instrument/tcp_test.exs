@@ -1,4 +1,4 @@
-defmodule TcpTest do
+defmodule LabLive.Instrument.TcpTest do
   alias LabLive.Instrument.Tcp
   use ExUnit.Case
   doctest Tcp

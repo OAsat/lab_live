@@ -1,4 +1,4 @@
-defmodule InstrumentTest do
+defmodule LabLive.InstrumentTest do
   alias LabLive.Instrument.Dummy
   alias LabLive.Instrument, as: Im
   use ExUnit.Case
