@@ -1,4 +1,19 @@
 defmodule LabLive.Variables do
+  @moduledoc """
+  Supervisor to manage properties by keys.
+
+      iex> import LabLive.Variables
+      iex> properties = %{a: fn -> 1 end, b: fn x -> x + 1 end}
+      iex> start_properties(properties)
+      iex> update(:a)
+      1
+      iex> latest(:a)
+      1
+      iex> update(:b, 1)
+      2
+      iex> latest(:b)
+      2
+  """
   use Supervisor
   alias LabLive.Property
 
@@ -48,7 +63,15 @@ defmodule LabLive.Variables do
   end
 
   @spec update(atom()) :: any()
-  def update(key, args \\ nil) do
+  def update(key) do
+    case lookup(key) do
+      {pid, Property} -> Property.update(pid)
+      {_pid, module} -> raise "Variable #{key} is not a property. It is a #{module}."
+    end
+  end
+
+  @spec update(atom(), any()) :: any()
+  def update(key, args) do
     case lookup(key) do
       {pid, Property} -> Property.update(pid, args)
       {_pid, module} -> raise "Variable #{key} is not a property. It is a #{module}."
@@ -56,9 +79,9 @@ defmodule LabLive.Variables do
   end
 
   @spec latest(atom()) :: any()
-  def latest(key, args \\ nil) do
+  def latest(key) do
     case lookup(key) do
-      {pid, Property} -> Property.update(pid, args)
+      {pid, Property} -> Property.latest(pid)
       {_pid, module} -> raise "Variable #{key} is not a property. It is a #{module}."
     end
   end
