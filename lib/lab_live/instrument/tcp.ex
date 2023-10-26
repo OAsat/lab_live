@@ -1,4 +1,4 @@
-defmodule LabLive.Instrument.TcpInstrument do
+defmodule LabLive.Instrument.Tcp do
   alias LabLive.Instrument
 
   use GenServer
@@ -10,28 +10,49 @@ defmodule LabLive.Instrument.TcpInstrument do
     {:ok, opts}
   end
 
+  defp get_opts(opts) do
+    address = Keyword.get(opts, :address)
+    port = Keyword.get(opts, :port)
+    sleep_after = Keyword.get(opts, :sleep_after, 0)
+    {address, port, sleep_after}
+  end
+
   @impl GenServer
-  def handle_call({:read, message}, _from, opts = {address, port}) do
+  def handle_call({:read, message}, from, opts) do
+    {address, port, sleep_after} = get_opts(opts)
     {:ok, socket} = :gen_tcp.connect(address, port, @tcp_opts, 1000)
 
     :ok = :gen_tcp.send(socket, message)
     {:ok, answer} = :gen_tcp.recv(socket, 0, 1000)
+
+    GenServer.reply(from, answer)
     :gen_tcp.close(socket)
-    {:reply, answer, opts}
+
+    if sleep_after > 0 do
+      Process.sleep(sleep_after)
+    end
+
+    {:noreply, opts}
   end
 
   @impl GenServer
-  def handle_cast({:write, message}, opts = {address, port}) do
+  def handle_cast({:write, message}, opts) do
+    {address, port, sleep_after} = get_opts(opts)
     {:ok, socket} = :gen_tcp.connect(address, port, @tcp_opts, 1000)
 
     :ok = :gen_tcp.send(socket, message)
     :gen_tcp.close(socket)
+
+    if sleep_after > 0 do
+      Process.sleep(sleep_after)
+    end
+
     {:noreply, opts}
   end
 
   @impl Instrument
-  def start_link({name, address: address, port: port}) do
-    GenServer.start_link(__MODULE__, {address, port}, name: name)
+  def start_link({name, opts}) do
+    GenServer.start_link(__MODULE__, opts, name: name)
   end
 
   @impl Instrument

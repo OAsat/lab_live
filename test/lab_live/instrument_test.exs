@@ -1,6 +1,6 @@
-defmodule InstrumentManagerTest do
-  alias LabLive.Instrument.DummyInstrument
-  alias LabLive.InstrumentManager, as: Im
+defmodule LabLive.InstrumentTest do
+  alias LabLive.Instrument.Dummy
+  alias LabLive.Instrument, as: Im
   use ExUnit.Case
   doctest Im
 
@@ -19,21 +19,21 @@ defmodule InstrumentManagerTest do
       "READ:B\n" => "ANSWER:B 45.6K\n"
     }
 
-    inst_list = [
-      {:inst1, DummyInstrument, map: dummy_map},
-      {:inst2, DummyModel, DummyInstrument, map: dummy_map}
-    ]
+    inst_list = %{
+      inst1: {Dummy, map: dummy_map},
+      inst2: {DummyModel, Dummy, map: dummy_map}
+    }
 
-    assert [{:ok, _}, {:ok, _}] = Im.start_instruments(inst_list)
+    assert %{inst1: {:ok, _}, inst2: {:ok, _}} = Im.start_instruments(inst_list)
 
     assert Im.read(:inst1, "READ:A\n") == "ANSWER:A 12.3K\n"
     assert Im.write(:inst1, "WRITE:A\n") == :ok
-    assert Im.read(:inst1, {DummyModel, :a, channel: "A"}) == [channel: "A", value: 12.3]
-    assert Im.read(:inst1, {DummyModel, :b, []}) == [value: 45.6]
+    assert Im.read(:inst1, {DummyModel, :a, channel: "A"}) == %{channel: "A", value: 12.3}
+    assert Im.read(:inst1, {DummyModel, :b, []}) == %{value: 45.6}
     assert Im.write(:inst1, {DummyModel, :a, channel: "A"}) == :ok
 
-    assert Im.read(:inst2, :a, channel: "A") == [channel: "A", value: 12.3]
-    assert Im.read(:inst2, :b) == [value: 45.6]
+    assert Im.read(:inst2, :a, channel: "A") == %{channel: "A", value: 12.3}
+    assert Im.read(:inst2, :b) == %{value: 45.6}
     assert Im.write(:inst2, :a, channel: "A") == :ok
   end
 end

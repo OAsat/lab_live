@@ -22,7 +22,8 @@ defmodule LabLive.MixProject do
     [
       {:erlport, "~> 0.11.0"},
       {:ex_doc, "~> 0.30.8", only: :dev, runtime: false},
-      {:stream_data, "~> 0.5", only: :test}
+      {:stream_data, "~> 0.5", only: :test},
+      {:elixir_uuid, "~> 1.2", only: :test}
     ]
   end
 end

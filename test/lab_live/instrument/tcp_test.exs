@@ -1,7 +1,7 @@
-defmodule TcpInstrumentTest do
-  alias LabLive.Instrument.TcpInstrument
+defmodule LabLive.Instrument.TcpTest do
+  alias LabLive.Instrument.Tcp
   use ExUnit.Case
-  doctest TcpInstrument
+  doctest Tcp
 
   test "tcp" do
     defmodule Server do
@@ -37,10 +37,10 @@ defmodule TcpInstrumentTest do
     port = 8202
     {:ok, pid} = Task.start_link(fn -> Server.accept(port) end)
 
-    {:ok, inst_pid} = TcpInstrument.start_link({:inst1, address: ~c"localhost", port: port})
+    {:ok, inst_pid} = Tcp.start_link({:inst1, address: ~c"localhost", port: port})
 
-    assert TcpInstrument.read(inst_pid, "Hello.") == "Hello."
-    assert TcpInstrument.read(inst_pid, "Hi.") == "Hi."
+    assert Tcp.read(inst_pid, "Hello.") == "Hello."
+    assert Tcp.read(inst_pid, "Hi.") == "Hi."
 
     Process.exit(pid, :normal)
   end
