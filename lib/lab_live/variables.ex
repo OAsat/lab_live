@@ -7,11 +7,11 @@ defmodule LabLive.Variables do
       iex> start_properties(properties)
       iex> update(:a)
       1
-      iex> latest(:a)
+      iex> get(:a)
       1
       iex> update(:b, 1)
       2
-      iex> latest(:b)
+      iex> get(:b)
       2
   """
   use Supervisor
@@ -78,10 +78,10 @@ defmodule LabLive.Variables do
     end
   end
 
-  @spec latest(atom()) :: any()
-  def latest(key) do
+  @spec get(atom()) :: any()
+  def get(key) do
     case lookup(key) do
-      {pid, Property} -> Property.latest(pid)
+      {pid, Property} -> Property.get(pid)
       {_pid, module} -> raise "Variable #{key} is not a property. It is a #{module}."
     end
   end

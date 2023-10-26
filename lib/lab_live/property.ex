@@ -6,26 +6,26 @@ defmodule LabLive.Property do
       iex> {:ok, agent} = Agent.start_link(fn -> 0 end)
       iex> update_function = fn -> Agent.update(agent, &(&1 + 1)); Agent.get(agent, & &1) end
       iex> {:ok, pid} = GenServer.start_link(LabLive.Property, update_function)
-      iex> LabLive.Property.latest(pid)
+      iex> LabLive.Property.get(pid)
       nil
       iex> LabLive.Property.update(pid)
       1
-      iex> LabLive.Property.latest(pid)
+      iex> LabLive.Property.get(pid)
       1
       iex> LabLive.Property.update(pid)
       2
 
   with `update_function/1`
       iex> {:ok, pid} = GenServer.start_link(LabLive.Property, fn v -> v > 0 end)
-      iex> LabLive.Property.latest(pid)
+      iex> LabLive.Property.get(pid)
       nil
       iex> LabLive.Property.update(pid, 1)
       true
-      iex> LabLive.Property.latest(pid)
+      iex> LabLive.Property.get(pid)
       true
       iex> LabLive.Property.update(pid, -1)
       false
-      iex> LabLive.Property.latest(pid)
+      iex> LabLive.Property.get(pid)
       false
   """
 
@@ -59,7 +59,7 @@ defmodule LabLive.Property do
   end
 
   @impl GenServer
-  def handle_call(:latest, _from, state = {_, value}) do
+  def handle_call(:get, _from, state = {_, value}) do
     {:reply, value, state}
   end
 
@@ -72,10 +72,10 @@ defmodule LabLive.Property do
   end
 
   @doc """
-  Returns the result of the latest update.
+  Returns the result of the get update.
   """
-  @spec latest(GenServer.server()) :: any()
-  def latest(server) do
-    GenServer.call(server, :latest)
+  @spec get(GenServer.server()) :: any()
+  def get(server) do
+    GenServer.call(server, :get)
   end
 end
