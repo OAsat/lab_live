@@ -22,27 +22,21 @@ defmodule LabLive.Instrument do
     Supervisor.start_link(__MODULE__, init_arg, name: __MODULE__)
   end
 
-  def start_instrument(key, inst_impl, opts) do
+  def start_instrument(key, {inst_impl, opts}) do
     name = get_via_name(key, inst_impl)
     DynamicSupervisor.start_child(@supervisor, {inst_impl, {name, opts}})
   end
 
-  def start_instrument(key, model, inst_impl, opts) do
+  def start_instrument(key, {model, inst_impl, opts}) do
     name = get_via_name(key, inst_impl, model)
     DynamicSupervisor.start_child(@supervisor, {inst_impl, {name, opts}})
   end
 
-  def start_instrument({key, inst_impl, opts}) do
-    start_instrument(key, inst_impl, opts)
-  end
-
-  def start_instrument({key, model, inst_impl, opts}) do
-    start_instrument(key, model, inst_impl, opts)
-  end
-
-  def start_instruments(list) when is_list(list) do
-    list
-    |> Enum.map(fn i -> start_instrument(i) end)
+  def start_instruments(map) when is_map(map) do
+    for {key, inst} <- map do
+      {key, start_instrument(key, inst)}
+    end
+    |> Enum.into(%{})
   end
 
   defp lookup(inst) do
