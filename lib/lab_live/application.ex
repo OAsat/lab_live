@@ -2,14 +2,12 @@ defmodule LabLive.Application do
   @moduledoc false
 
   use Application
-  alias LabLive.Variables
-  alias LabLive.Instrument
 
   @impl true
   def start(_type, _args) do
     children = [
-      Instrument,
-      Variables
+      LabLive.Instrument,
+      LabLive.Variables
     ]
 
     opts = [strategy: :one_for_one, name: LabLive.Supervisor]
