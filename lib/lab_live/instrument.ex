@@ -1,92 +1,62 @@
 defmodule LabLive.Instrument do
-  use Supervisor
+  @moduledoc """
+  Sever to communicate with measurement instruments.
 
-  @registry LabLive.InstrumentRegistry
-  @supervisor LabLive.InstrumentSupervisor
+  See `LabLive.Instrument.Dummy`, `LabLive.Instrument.Tcp`, and `LabLive.Instrument.Pyvisa` for examples.
+  """
+  @callback init(opts :: any()) :: state :: any()
+  @callback read(message :: binary(), state :: any()) :: {answer :: binary(), info :: any()}
+  @callback after_reply(info :: any(), state :: any()) :: any()
+  @callback write(message :: binary(), state :: any()) :: :ok
 
-  @callback start_link({name :: GenServer.name(), opts :: any()}) :: any()
-  @callback write(pid :: pid(), query :: String.t(), opts :: any()) :: any()
-  @callback read(pid :: pid(), query :: String.t(), opts :: any()) :: String.t()
+  use GenServer
 
-  @impl Supervisor
-  def init(_init_arg) do
-    children = [
-      {DynamicSupervisor, name: @supervisor, strategy: :one_for_one},
-      {Registry, keys: :unique, name: @registry}
-    ]
-
-    Supervisor.init(children, strategy: :one_for_all)
+  @impl GenServer
+  def init({impl, opts}) do
+    state = impl.init(opts)
+    {:ok, {impl, state, opts}}
   end
 
-  def start_link(init_arg) do
-    Supervisor.start_link(__MODULE__, init_arg, name: __MODULE__)
-  end
+  @impl GenServer
+  def handle_call({:read, message}, from, stored = {impl, state, opts}) do
+    {answer, info} = impl.read(message, state)
 
-  def start_instrument(key, {inst_impl, opts}) do
-    name = get_via_name(key, inst_impl)
-    DynamicSupervisor.start_child(@supervisor, {inst_impl, {name, opts}})
-  end
+    GenServer.reply(from, answer)
 
-  def start_instrument(key, {model, inst_impl, opts}) do
-    name = get_via_name(key, inst_impl, model)
-    DynamicSupervisor.start_child(@supervisor, {inst_impl, {name, opts}})
-  end
+    impl.after_reply(info, state)
 
-  def start_instruments(map) when is_map(map) do
-    for {key, inst} <- map do
-      {key, start_instrument(key, inst)}
+    sleep_after = Keyword.get(opts, :sleep_after, 0)
+
+    if sleep_after > 0 do
+      Process.sleep(sleep_after)
     end
-    |> Enum.into(%{})
+
+    {:noreply, stored}
   end
 
-  defp lookup(inst) do
-    case Registry.lookup(@registry, inst) do
-      [] -> raise "Instrument #{inst} not found."
-      [{pid, {module, model}}] -> {pid, module, model}
-      [{pid, module}] -> {pid, module}
+  @impl GenServer
+  def handle_cast({:write, message}, stored = {impl, state, opts}) do
+    :ok = impl.write(message, state)
+
+    sleep_after = Keyword.get(opts, :sleep_after, 0)
+
+    if sleep_after > 0 do
+      Process.sleep(sleep_after)
     end
+
+    {:noreply, stored}
   end
 
-  defp get_via_name(key, module) do
-    {:via, Registry, {@registry, key, module}}
+  @spec start_link({atom(), module(), Keyword.t()}) :: GenServer.on_start()
+  def start_link({name, impl, opts}) do
+    GenServer.start_link(__MODULE__, {impl, opts}, name: name)
   end
 
-  defp get_via_name(key, module, model) do
-    {:via, Registry, {@registry, key, {module, model}}}
+  def read(pid, message) do
+    GenServer.call(pid, {:read, message})
   end
 
-  def read(key, query) when is_binary(query) do
-    case lookup(key) do
-      {pid, module, _model} -> module.read(pid, query)
-      {pid, module} -> module.read(pid, query)
-    end
-  end
-
-  def read(inst, {model, query_key, opts}) do
-    {query, parser} = model.read(query_key, opts)
-
-    read(inst, query) |> parser.()
-  end
-
-  def read(inst, query_key, opts \\ []) when is_atom(query_key) do
-    {_pid, _module, model} = lookup(inst)
-    read(inst, {model, query_key, opts})
-  end
-
-  def write(inst, query) when is_binary(query) do
-    case lookup(inst) do
-      {pid, module, _model} -> module.write(pid, query)
-      {pid, module} -> module.write(pid, query)
-    end
-  end
-
-  def write(inst, {model, query_key, opts}) do
-    query = model.write(query_key, opts)
-    write(inst, query)
-  end
-
-  def write(inst, query_key, opts \\ []) when is_atom(query_key) do
-    {_pid, _module, model} = lookup(inst)
-    write(inst, {model, query_key, opts})
+  def write(pid, message) do
+    GenServer.cast(pid, {:write, message})
   end
 end
