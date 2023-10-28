@@ -3,9 +3,13 @@ defmodule LabLive.Instruments do
   Supervisor to manage instruments by keys.
 
       iex> alias LabLive.Instrument.Dummy
-      iex> {:ok, _pid} = LabLive.Instruments.start_instrument(:inst1, nil, {Dummy, map: %{"read" => "answer"}})
-      iex> LabLive.Instruments.read(:inst1, "read")
-      "answer"
+      iex> {:ok, _pid} = LabLive.Instruments.start_instrument(:inst1, Lakeshore350, {Dummy, map: Lakeshore350.dummy()})
+      iex> LabLive.Instruments.read(:inst1, "SETP? 2\\n")
+      "1.0\\r\\n"
+      iex> LabLive.Instruments.read(:inst1, :setp, channel: 2)
+      %{kelvin: 1.0}
+      iex> LabLive.Instruments.read_joined(:inst1, sensor: [channel: "A"], heater: [channel: 2])
+      %{sensor: %{ohm: 1200.0}, heater: %{percentage: 56.7}}
 
   Starting multiple instruments:
       iex> alias LabLive.Instrument.Dummy
@@ -65,7 +69,7 @@ defmodule LabLive.Instruments do
     end
   end
 
-  def read(key, query_key, opts) when is_atom(query_key) and is_list(opts) do
+  def read(key, query_key, opts \\ []) when is_atom(query_key) and is_list(opts) do
     {pid, model} = lookup(key)
     Instrument.read(pid, model, query_key, opts)
   end
@@ -81,7 +85,7 @@ defmodule LabLive.Instruments do
     end
   end
 
-  def write(key, query_key, opts) when is_atom(query_key) and is_list(opts) do
+  def write(key, query_key, opts \\ []) when is_atom(query_key) and is_list(opts) do
     {pid, model} = lookup(key)
     Instrument.write(pid, model, query_key, opts)
   end

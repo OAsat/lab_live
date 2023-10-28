@@ -11,9 +11,9 @@ defmodule LabLive.Instrument do
       iex> LabLive.Instrument.read(pid, "SETP? 2\\n")
       "1.0\\r\\n"
       iex> LabLive.Instrument.read(pid, Lakeshore350, :ramp, channel: 2)
-      [onoff: 1, kpermin: 0.2]
+      %{onoff: 1, kpermin: 0.2}
       iex> LabLive.Instrument.read_joined(pid, Lakeshore350, sensor: [channel: "A"], heater: [channel: 2])
-      [sensor: [ohm: 1200.0], heater: [percentage: 56.7]]
+      %{sensor: %{ohm: 1200.0}, heater: %{percentage: 56.7}}
   """
   @callback init(opts :: any()) :: state :: any()
   @callback read(message :: binary(), state :: any()) :: {answer :: binary(), info :: any()}
@@ -67,7 +67,7 @@ defmodule LabLive.Instrument do
     GenServer.call(pid, {:read, message})
   end
 
-  def read(pid, model, key, opts) when is_atom(key) and is_list(opts) do
+  def read(pid, model, key, opts \\ []) when is_atom(key) and is_list(opts) do
     {query, parser} = LabLive.Model.get_reader(model, key, opts)
     read(pid, query) |> parser.()
   end
@@ -81,7 +81,7 @@ defmodule LabLive.Instrument do
     GenServer.cast(pid, {:write, message})
   end
 
-  def write(pid, model, key, opts) do
+  def write(pid, model, key, opts \\ []) do
     query = LabLive.Model.get_writer(model, key, opts)
     write(pid, query)
   end
