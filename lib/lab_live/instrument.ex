@@ -3,6 +3,17 @@ defmodule LabLive.Instrument do
   Sever to communicate with measurement instruments.
 
   See `LabLive.Instrument.Dummy`, `LabLive.Instrument.Tcp`, and `LabLive.Instrument.Pyvisa` for examples.
+
+  ### Example
+  (For the definition of `Lakeshore350.dummy/0` and `Lakeshore350`, see `LabLive.Model`.)
+      iex> map = Lakeshore350.dummy()
+      iex> {:ok, pid} = LabLive.Instrument.start_link({:ls350, LabLive.Instrument.Dummy, map: map})
+      iex> LabLive.Instrument.read(pid, "SETP? 2\\n")
+      "1.0\\r\\n"
+      iex> LabLive.Instrument.read(pid, Lakeshore350, :ramp, channel: 2)
+      [onoff: 1, kpermin: 0.2]
+      iex> LabLive.Instrument.read_joined(pid, Lakeshore350, sensor: [channel: "A"], heater: [channel: 2])
+      [sensor: [ohm: 1200.0], heater: [percentage: 56.7]]
   """
   @callback init(opts :: any()) :: state :: any()
   @callback read(message :: binary(), state :: any()) :: {answer :: binary(), info :: any()}
@@ -52,11 +63,31 @@ defmodule LabLive.Instrument do
     GenServer.start_link(__MODULE__, {impl, opts}, name: name)
   end
 
-  def read(pid, message) do
+  def read(pid, message) when is_binary(message) do
     GenServer.call(pid, {:read, message})
   end
 
-  def write(pid, message) do
+  def read(pid, model, key, opts) when is_atom(key) and is_list(opts) do
+    {query, parser} = LabLive.Model.get_reader(model, key, opts)
+    read(pid, query) |> parser.()
+  end
+
+  def read_joined(pid, model, keys_and_opts) when is_list(keys_and_opts) do
+    {query, parser} = LabLive.Model.get_joined_reader(model, keys_and_opts)
+    read(pid, query) |> parser.()
+  end
+
+  def write(pid, message) when is_binary(message) do
     GenServer.cast(pid, {:write, message})
+  end
+
+  def write(pid, model, key, opts) do
+    query = LabLive.Model.get_writer(model, key, opts)
+    write(pid, query)
+  end
+
+  def write_joined(pid, model, keys_and_opts) when is_list(keys_and_opts) do
+    query = LabLive.Model.get_joined_writer(model, keys_and_opts)
+    write(pid, query)
   end
 end

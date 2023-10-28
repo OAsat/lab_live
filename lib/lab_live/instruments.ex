@@ -65,14 +65,29 @@ defmodule LabLive.Instruments do
     end
   end
 
+  def read(key, query_key, opts) when is_atom(query_key) and is_list(opts) do
+    {pid, model} = lookup(key)
+    Instrument.read(pid, model, query_key, opts)
+  end
+
+  def read_joined(key, query_keys_and_opts) when is_list(query_keys_and_opts) do
+    {pid, model} = lookup(key)
+    Instrument.read_joined(pid, model, query_keys_and_opts)
+  end
+
   def write(key, query) when is_binary(query) do
     case lookup(key) do
       {pid, _model} -> Instrument.write(pid, query)
     end
   end
 
-  def write(inst, {model, query_key, opts}) do
-    query = model.write(query_key, opts)
-    write(inst, query)
+  def write(key, query_key, opts) when is_atom(query_key) and is_list(opts) do
+    {pid, model} = lookup(key)
+    Instrument.write(pid, model, query_key, opts)
+  end
+
+  def write_joined(key, query_keys_and_opts) when is_list(query_keys_and_opts) do
+    {pid, model} = lookup(key)
+    Instrument.write_joined(pid, model, query_keys_and_opts)
   end
 end

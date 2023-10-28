@@ -1,14 +1,6 @@
 defmodule LabLive.Instrument.Dummy do
   @moduledoc """
   Dummy instrument.
-
-      iex> alias LabLive.Instrument.Dummy
-      iex> expected_map = %{"read" => "answer", "write" => nil}
-      iex> {:ok, pid} = LabLive.Instrument.start_link({:dummy_test, Dummy, map: expected_map})
-      iex> LabLive.Instrument.read(pid, "read")
-      "answer"
-      iex> LabLive.Instrument.write(pid, "write")
-      :ok
   """
   alias LabLive.Instrument
 
