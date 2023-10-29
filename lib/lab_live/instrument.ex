@@ -23,18 +23,23 @@ defmodule LabLive.Instrument do
   use GenServer
 
   @impl GenServer
-  def init({impl, opts}) do
+  def init({name, impl, opts}) do
     state = impl.init(opts)
-    {:ok, {impl, state, opts}}
+    {:ok, {name, impl, state, opts}}
   end
 
   @impl GenServer
-  def handle_call({:read, message}, from, stored = {impl, state, opts}) do
+  def handle_call({:read, message}, from, stored = {name, impl, state, opts}) do
     {answer, info} = impl.read(message, state)
 
     GenServer.reply(from, answer)
-
     impl.after_reply(info, state)
+
+    :telemetry.execute(
+      [:lab_live, :instrument, :read],
+      %{message: message, answer: answer},
+      %{process: self(), state: stored, name: name}
+    )
 
     sleep_after = Keyword.get(opts, :sleep_after, 0)
 
@@ -46,10 +51,16 @@ defmodule LabLive.Instrument do
   end
 
   @impl GenServer
-  def handle_cast({:write, message}, stored = {impl, state, opts}) do
+  def handle_cast({:write, message}, stored = {name, impl, state, opts}) do
     :ok = impl.write(message, state)
 
     sleep_after = Keyword.get(opts, :sleep_after, 0)
+
+    :telemetry.execute(
+      [:lab_live, :instrument, :write],
+      %{message: message, answer: nil},
+      %{process: self(), state: stored, name: name}
+    )
 
     if sleep_after > 0 do
       Process.sleep(sleep_after)
@@ -60,7 +71,7 @@ defmodule LabLive.Instrument do
 
   @spec start_link({atom(), module(), Keyword.t()}) :: GenServer.on_start()
   def start_link({name, impl, opts}) do
-    GenServer.start_link(__MODULE__, {impl, opts}, name: name)
+    GenServer.start_link(__MODULE__, {name, impl, opts}, name: name)
   end
 
   def read(pid, message) when is_binary(message) do
