@@ -15,10 +15,12 @@ defmodule LabLive.Variables do
       iex> %{b: {:ok, _pid_b}, c: {:ok, _pid_c}} = start_properties(props)
       iex> opts(:c)
       [label: "label of c"]
+      iex> labels([:b, :c])
+      [b: "b", c: "label of c"]
       iex> update_many(%{b: 20, c: 30})
       %{b: :ok, c: :ok}
       iex> get_many([:b, :c])
-      %{b: 20, c: 30}
+      [b: 20, c: 30]
   """
   use Supervisor
   alias LabLive.Property
@@ -89,6 +91,14 @@ defmodule LabLive.Variables do
     for key <- keys do
       {key, get(key)}
     end
-    |> Enum.into(%{})
+  end
+
+  def labels(keys) do
+    for key <- keys do
+      case Keyword.get(opts(key), :label, nil) do
+        nil -> {key, to_string(key)}
+        label -> {key, label}
+      end
+    end
   end
 end

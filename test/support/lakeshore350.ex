@@ -24,7 +24,7 @@ defmodule Lakeshore350 do
       "SRDG? A;HTR? 2\n" => "1200.0;56.7\r\n",
       "SETP 2,1.0\n" => nil,
       "RANGE 2,2\n" => nil,
-      "RAMP 2,1,0.2\n" => nil,
+      "RAMP 2,1,0.2\n" => nil
     }
   end
 end
