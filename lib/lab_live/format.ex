@@ -8,7 +8,7 @@ defmodule LabLive.Format do
   @doc """
   Parses string to a map.
       iex> LabLive.Format.parse("message:hello,12,3.4,end", "message:{{key1:str}},{{key2:int}},{{key3:float}},end")
-      %{key1: "hello", key2: 12, key3: 3.4}
+      [key1: "hello", key2: 12, key3: 3.4]
   """
   def parse(str, format) do
     keys_and_types = extract_keys_and_types(format)
@@ -16,7 +16,6 @@ defmodule LabLive.Format do
 
     Enum.zip(values, keys_and_types)
     |> Enum.map(fn {value, {key, type}} -> {key, parse_func(type).(value)} end)
-    |> Enum.into(%{})
   end
 
   @spec format_to_regex(binary()) :: Regex.t()

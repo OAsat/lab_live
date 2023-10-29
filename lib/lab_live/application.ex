@@ -6,7 +6,7 @@ defmodule LabLive.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      LabLive.Instrument,
+      LabLive.Instruments,
       LabLive.Variables
     ]
 

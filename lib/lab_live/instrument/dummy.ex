@@ -1,41 +1,34 @@
 defmodule LabLive.Instrument.Dummy do
+  @moduledoc """
+  Dummy instrument.
+  """
   alias LabLive.Instrument
 
-  use GenServer
   @behaviour Instrument
 
-  @impl GenServer
+  @impl Instrument
   def init(opts) do
-    {:ok, opts}
+    map = Keyword.get(opts, :map)
+    map
   end
 
-  @impl GenServer
-  def handle_call({:read, message}, _from, mapping) do
-    %{^message => answer} = mapping
-    {:reply, answer, mapping}
+  @impl Instrument
+  def read(message, map) do
+    %{^message => answer} = map
+    {answer, nil}
   end
 
-  @impl GenServer
-  def handle_cast({:write, message}, mapping) do
-    if not Map.has_key?(mapping, message) do
+  @impl Instrument
+  def after_reply(nil, _map) do
+    nil
+  end
+
+  @impl Instrument
+  def write(message, map) do
+    if not Map.has_key?(map, message) do
       raise "Write message #{message} not expected."
+    else
+      :ok
     end
-
-    {:noreply, mapping}
-  end
-
-  @impl Instrument
-  def start_link({name, map: map}) do
-    GenServer.start_link(__MODULE__, map, name: name)
-  end
-
-  @impl Instrument
-  def read(pid, message, _opts \\ nil) do
-    GenServer.call(pid, {:read, message})
-  end
-
-  @impl Instrument
-  def write(pid, message, _opts \\ nil) do
-    GenServer.cast(pid, {:write, message})
   end
 end

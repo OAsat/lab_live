@@ -3,7 +3,10 @@ defmodule LabLive do
   Documentation for `LabLive`.
   """
 
-  def run(_module, _) do
-    :not_implemented
+  def run_many(module, functions) do
+    for function <- functions do
+      Task.async(module, function, [])
+    end
+    |> Task.await_many()
   end
 end
