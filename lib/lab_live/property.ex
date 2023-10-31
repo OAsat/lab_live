@@ -4,7 +4,7 @@ defmodule LabLive.Property do
 
       iex> {:ok, pid} = LabLive.Property.start_link(:a)
       iex> LabLive.Property.get(pid)
-      :init
+      :empty
       iex> LabLive.Property.update(pid, 1)
       iex> LabLive.Property.get(pid)
       1
@@ -12,7 +12,7 @@ defmodule LabLive.Property do
   use Agent
 
   def start_link(name) do
-    Agent.start_link(fn -> :init end, name: name)
+    Agent.start_link(fn -> :empty end, name: name)
   end
 
   def get(name) do

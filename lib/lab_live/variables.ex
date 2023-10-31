@@ -11,8 +11,8 @@ defmodule LabLive.Variables do
 
   Starting multiple properties:
       iex> import LabLive.Variables
-      iex> props = %{b: [], c: [label: "label of c"]}
-      iex> %{b: {:ok, _pid_b}, c: {:ok, _pid_c}} = start_properties(props)
+      iex> props = [b: [], c: [label: "label of c"]]
+      iex> [b: {:ok, _pid_b}, c: {:ok, _pid_c}] = start_props(props)
       iex> opts(:c)
       [label: "label of c"]
       iex> labels([:b, :c])
@@ -49,14 +49,11 @@ defmodule LabLive.Variables do
     DynamicSupervisor.start_child(@supervisor, {Property, via})
   end
 
-  @spec start_properties(map()) :: %{
-          atom() => DynamicSupervisor.on_start_child()
-        }
-  def start_properties(properties) do
-    for {name, opts} <- properties do
+  @spec start_props(map() | Keyword.t()) :: Keyword.t()
+  def start_props(props) do
+    for {name, opts} <- props do
       {name, start_property(name, opts)}
     end
-    |> Enum.into(%{})
   end
 
   defp lookup(key) do
@@ -93,12 +90,22 @@ defmodule LabLive.Variables do
     end
   end
 
-  def labels(keys) do
-    for key <- keys do
-      case Keyword.get(opts(key), :label, nil) do
-        nil -> {key, to_string(key)}
-        label -> {key, label}
-      end
+  def label(key) do
+    case Keyword.get(opts(key), :label, nil) do
+      nil -> to_string(key)
+      label -> label
     end
+  end
+
+  def labels(keys) do
+    Enum.map(keys, fn key -> {key, label(key)} end)
+  end
+
+  def keys_and_pids() do
+    Supervisor.which_children(@supervisor)
+    |> Enum.map(fn {_, pid, _, _} ->
+      key = Registry.keys(@registry, pid) |> List.first()
+      {key, pid}
+    end)
   end
 end

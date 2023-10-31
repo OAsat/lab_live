@@ -17,7 +17,7 @@ defmodule LabLive.Application do
           [:lab_live, :instrument, :read],
           [:lab_live, :instrument, :write]
         ],
-        &LabLive.Telemetry.handle_event/4,
+        &LabLive.Telemetry.handle_instrument/4,
         nil
       )
 
