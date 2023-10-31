@@ -3,8 +3,8 @@ defmodule LabLive.CsvWriter do
   Functions for writing data to csv.
   """
 
-  @spec commented_header({Keyword.t() | map()}, {Keyword.t() | map()}, [atom()], binary()) ::
-          binary()
+  import LabLive.Variables
+
   @doc """
   Returns header string with comment-out.
 
@@ -21,7 +21,6 @@ defmodule LabLive.CsvWriter do
     |> Enum.join("\n")
   end
 
-  @spec columns({Keyword.t() | map()}, [atom()]) :: binary()
   @doc """
   Returns header string representing column labels.
 
@@ -59,5 +58,18 @@ defmodule LabLive.CsvWriter do
     File.open(filepath, [:append], fn file ->
       IO.binwrite(file, content <> newline)
     end)
+  end
+
+  def init_csv(filepath_key, column_keys, comment_keys) do
+    comment = commented_header(labels(comment_keys), get_many(comment_keys), comment_keys)
+    cols = columns(labels(column_keys), column_keys)
+    header = "#{comment}\n#{cols}\n"
+
+    init_file(get(filepath_key), header)
+  end
+
+  def write_csv(filepath_key, column_keys) do
+    data_str = data_to_string(get_many(column_keys), column_keys)
+    append_to_file(get(filepath_key), data_str)
   end
 end
