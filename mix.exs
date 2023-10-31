@@ -23,6 +23,7 @@ defmodule LabLive.MixProject do
       {:erlport, "~> 0.11.0"},
       {:timex, "~> 3.7"},
       {:telemetry, "~> 1.2"},
+      {:kino, "~> 0.11.0"},
       {:ex_doc, "~> 0.30.8", only: :dev, runtime: false},
       {:stream_data, "~> 0.5", only: :test}
     ]

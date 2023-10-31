@@ -1,7 +1,7 @@
 defmodule LabLive.Telemetry do
   require Logger
 
-  def handle_event(
+  def handle_instrument(
         [:lab_live, :instrument, :read],
         %{message: message, answer: answer},
         %{name: name},
@@ -12,7 +12,7 @@ defmodule LabLive.Telemetry do
     )
   end
 
-  def handle_event(
+  def handle_instrument(
         [:lab_live, :instrument, :write],
         %{message: message, answer: nil},
         %{name: name},
