@@ -46,7 +46,8 @@ defmodule LabLive.PropertyManager do
   @spec start_property(atom(), Keyword.t()) :: DynamicSupervisor.on_start_child()
   def start_property(name, opts \\ []) do
     via = {:via, Registry, {@registry, name, opts}}
-    DynamicSupervisor.start_child(@supervisor, {Property, via})
+    new_opts = Keyword.put(opts, :name, via)
+    DynamicSupervisor.start_child(@supervisor, {Property, new_opts})
   end
 
   @spec start_props(map() | Keyword.t()) :: Keyword.t()
@@ -56,7 +57,7 @@ defmodule LabLive.PropertyManager do
     end
   end
 
-  defp lookup(key) do
+  def lookup(key) do
     case Registry.lookup(@registry, key) do
       [] -> raise "Variable #{key} not found."
       [{pid, opts}] -> {pid, opts}
