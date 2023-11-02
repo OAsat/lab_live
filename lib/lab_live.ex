@@ -7,6 +7,6 @@ defmodule LabLive do
     for function <- functions do
       Task.async(module, function, [])
     end
-    |> Task.await_many()
+    |> Task.await_many(:infinity)
   end
 end

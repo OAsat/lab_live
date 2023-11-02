@@ -7,7 +7,9 @@ defmodule LabLive.Application do
   def start(_type, _args) do
     children = [
       LabLive.Instruments,
-      LabLive.Variables
+      LabLive.Variables,
+      LabLive.Execution,
+      LabLive.Widgets
     ]
 
     :ok =
@@ -18,6 +20,14 @@ defmodule LabLive.Application do
           [:lab_live, :instrument, :write]
         ],
         &LabLive.Telemetry.handle_instrument/4,
+        nil
+      )
+
+    :ok =
+      :telemetry.attach(
+        "lab_live execution handler",
+        [:lab_live, :execution, :update_status],
+        &LabLive.Telemetry.update_widget/4,
         nil
       )
 

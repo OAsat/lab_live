@@ -20,4 +20,13 @@ defmodule LabLive.Telemetry do
       ) do
     Logger.info("write inst #{inspect(name)}. message:#{inspect(message)}")
   end
+
+  def update_widget(
+        [:lab_live, :execution, :update_status],
+        %{exec_state: exec_state},
+        _meta,
+        _config
+      ) do
+    LabLive.Widgets.update_diagram(exec_state)
+  end
 end
