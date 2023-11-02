@@ -3,7 +3,7 @@ defmodule LabLive.CsvWriter do
   Functions for writing data to csv.
   """
 
-  import LabLive.Variables
+  import LabLive.PropertyManager
 
   @doc """
   Returns header string with comment-out.

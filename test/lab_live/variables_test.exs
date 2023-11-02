@@ -1,5 +1,5 @@
-defmodule LabLive.VariablesTest do
-  alias LabLive.Variables
+defmodule LabLive.PropertyManagerTest do
+  alias LabLive.PropertyManager
   use ExUnit.Case
-  doctest Variables
+  doctest PropertyManager
 end

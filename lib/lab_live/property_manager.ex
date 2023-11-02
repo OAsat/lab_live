@@ -1,8 +1,8 @@
-defmodule LabLive.Variables do
+defmodule LabLive.PropertyManager do
   @moduledoc """
   Supervisor to manage properties by keys.
 
-      iex> import LabLive.Variables
+      iex> import LabLive.PropertyManager
       iex> {:ok, _pid} = start_property(:a)
       iex> 10 |> update(:a)
       :ok
@@ -10,7 +10,7 @@ defmodule LabLive.Variables do
       10
 
   Starting multiple properties:
-      iex> import LabLive.Variables
+      iex> import LabLive.PropertyManager
       iex> props = [b: [], c: [label: "label of c"]]
       iex> [b: {:ok, _pid_b}, c: {:ok, _pid_c}] = start_props(props)
       iex> opts(:c)
@@ -25,8 +25,8 @@ defmodule LabLive.Variables do
   use Supervisor
   alias LabLive.Property
 
-  @registry LabLive.VariableRegistry
-  @supervisor LabLive.VariableSupervisor
+  @registry LabLive.PropertyRegistry
+  @supervisor LabLive.PropertySupervisor
 
   @impl Supervisor
   def init(:ok) do
@@ -46,7 +46,8 @@ defmodule LabLive.Variables do
   @spec start_property(atom(), Keyword.t()) :: DynamicSupervisor.on_start_child()
   def start_property(name, opts \\ []) do
     via = {:via, Registry, {@registry, name, opts}}
-    DynamicSupervisor.start_child(@supervisor, {Property, via})
+    new_opts = Keyword.put(opts, :name, via)
+    DynamicSupervisor.start_child(@supervisor, {Property, new_opts})
   end
 
   @spec start_props(map() | Keyword.t()) :: Keyword.t()
@@ -56,11 +57,15 @@ defmodule LabLive.Variables do
     end
   end
 
-  defp lookup(key) do
+  def lookup(key) do
     case Registry.lookup(@registry, key) do
       [] -> raise "Variable #{key} not found."
       [{pid, opts}] -> {pid, opts}
     end
+  end
+
+  def pid(key) do
+    lookup(key) |> elem(0)
   end
 
   def opts(key) do
@@ -69,7 +74,7 @@ defmodule LabLive.Variables do
 
   @spec update(any(), atom()) :: any()
   def update(value, key) do
-    lookup(key) |> elem(0) |> Property.update(value)
+    pid(key) |> Property.update(value)
   end
 
   def update_many(keys_and_values) do
@@ -81,7 +86,11 @@ defmodule LabLive.Variables do
 
   @spec get(atom()) :: any()
   def get(key) do
-    lookup(key) |> elem(0) |> Property.get()
+    pid(key) |> Property.get()
+  end
+
+  def stats(key) do
+    pid(key) |> Property.stats()
   end
 
   def get_many(keys) do
