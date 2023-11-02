@@ -1,8 +1,8 @@
-defmodule LabLive.Variables do
+defmodule LabLive.PropertyManager do
   @moduledoc """
   Supervisor to manage properties by keys.
 
-      iex> import LabLive.Variables
+      iex> import LabLive.PropertyManager
       iex> {:ok, _pid} = start_property(:a)
       iex> 10 |> update(:a)
       :ok
@@ -10,7 +10,7 @@ defmodule LabLive.Variables do
       10
 
   Starting multiple properties:
-      iex> import LabLive.Variables
+      iex> import LabLive.PropertyManager
       iex> props = [b: [], c: [label: "label of c"]]
       iex> [b: {:ok, _pid_b}, c: {:ok, _pid_c}] = start_props(props)
       iex> opts(:c)
@@ -25,8 +25,8 @@ defmodule LabLive.Variables do
   use Supervisor
   alias LabLive.Property
 
-  @registry LabLive.VariableRegistry
-  @supervisor LabLive.VariableSupervisor
+  @registry LabLive.PropertyRegistry
+  @supervisor LabLive.PropertySupervisor
 
   @impl Supervisor
   def init(:ok) do

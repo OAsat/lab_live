@@ -1,6 +1,6 @@
 defmodule LabLive.Widgets do
   use GenServer
-  alias LabLive.Variables
+  alias LabLive.PropertyManager
 
   def start_under_kino() do
     Kino.start_child(__MODULE__)
@@ -60,7 +60,7 @@ defmodule LabLive.Widgets do
     content =
       for {key, opts} <- props do
         label = Keyword.get(opts, :label, to_string(key))
-        "|#{key}|#{label}|#{Variables.get(key)}|"
+        "|#{key}|#{label}|#{PropertyManager.get(key)}|"
       end
       |> Enum.join("\n")
 
