@@ -64,13 +64,17 @@ defmodule LabLive.PropertyManager do
     end
   end
 
+  def pid(key) do
+    lookup(key) |> elem(0)
+  end
+
   def opts(key) do
     lookup(key) |> elem(1)
   end
 
   @spec update(any(), atom()) :: any()
   def update(value, key) do
-    lookup(key) |> elem(0) |> Property.update(value)
+    pid(key) |> Property.update(value)
   end
 
   def update_many(keys_and_values) do
@@ -82,7 +86,11 @@ defmodule LabLive.PropertyManager do
 
   @spec get(atom()) :: any()
   def get(key) do
-    lookup(key) |> elem(0) |> Property.get()
+    pid(key) |> Property.get()
+  end
+
+  def stats(key) do
+    pid(key) |> Property.stats()
   end
 
   def get_many(keys) do
