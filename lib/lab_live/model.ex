@@ -86,7 +86,7 @@ defmodule LabLive.Model do
       iex> query
       "RAMP? 1;HTR? 1;KRDG? A;SRDG? A\\n"
       iex> parser.("0,0.2;50.0;300.0;100.0\\r\\n")
-      %{ramp: %{onoff: 0, kpermin: 0.2}, heater: %{percentage: 50.0}, kelvin: %{kelvin: 300.0}, sensor: %{ohm: 100.0}}
+      [ramp: %{onoff: 0, kpermin: 0.2}, heater: %{percentage: 50.0}, kelvin: %{kelvin: 300.0}, sensor: %{ohm: 100.0}]
   """
   def get_joined_reader(model, keys_and_opts) do
     {queries, parsers} =
@@ -106,7 +106,7 @@ defmodule LabLive.Model do
           parser.(ans <> model.read_termination())
         end
 
-      Enum.zip(Keyword.keys(keys_and_opts), results) |> Enum.into(%{})
+      Enum.zip(Keyword.keys(keys_and_opts), results)
     end
 
     {query, parser}

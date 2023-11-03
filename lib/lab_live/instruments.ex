@@ -9,7 +9,7 @@ defmodule LabLive.Instruments do
       iex> LabLive.Instruments.read(:inst1, :setp, channel: 2)
       %{kelvin: 1.0}
       iex> LabLive.Instruments.read_joined(:inst1, sensor: [channel: "A"], heater: [channel: 2])
-      %{sensor: %{ohm: 1200.0}, heater: %{percentage: 56.7}}
+      [sensor: %{ohm: 1200.0}, heater: %{percentage: 56.7}]
 
   Starting multiple instruments:
       iex> alias LabLive.Instrument.Dummy

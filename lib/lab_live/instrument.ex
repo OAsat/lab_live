@@ -13,7 +13,7 @@ defmodule LabLive.Instrument do
       iex> LabLive.Instrument.read(pid, Lakeshore350, :ramp, channel: 2)
       %{onoff: 1, kpermin: 0.2}
       iex> LabLive.Instrument.read_joined(pid, Lakeshore350, sensor: [channel: "A"], heater: [channel: 2])
-      %{sensor: %{ohm: 1200.0}, heater: %{percentage: 56.7}}
+      [sensor: %{ohm: 1200.0}, heater: %{percentage: 56.7}]
   """
   @callback init(opts :: any()) :: state :: any()
   @callback read(message :: binary(), state :: any()) :: {answer :: binary(), info :: any()}
