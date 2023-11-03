@@ -57,6 +57,30 @@ defmodule LabLive.Execution.Worker do
     {:reply, state, state}
   end
 
+  @spec set_diagram(map()) :: :ok
+  def set_diagram(diagram) do
+    GenServer.cast(__MODULE__, {:set_diagram, diagram})
+  end
+
+  @spec start() :: :ok
+  def start() do
+    GenServer.cast(__MODULE__, :start)
+  end
+
+  @spec pause() :: :ok
+  def pause() do
+    GenServer.cast(__MODULE__, :pause)
+  end
+
+  @spec get_state() :: any()
+  def get_state() do
+    GenServer.call(__MODULE__, :get_state)
+  end
+
+  defp send_after(interval) do
+    Process.send_after(self(), :run, interval)
+  end
+
   defp telemetry_update_state(state) do
     :telemetry.execute([:lab_live, :execution, :update_state], %{state: state})
   end
@@ -84,25 +108,5 @@ defmodule LabLive.Execution.Worker do
     next = branch[function.()]
     send_after(0)
     %{state | status: next}
-  end
-
-  def set_diagram(diagram) do
-    GenServer.cast(__MODULE__, {:set_diagram, diagram})
-  end
-
-  def start() do
-    GenServer.cast(__MODULE__, :start)
-  end
-
-  def pause() do
-    GenServer.cast(__MODULE__, :pause)
-  end
-
-  def get_state() do
-    GenServer.call(__MODULE__, :get_state)
-  end
-
-  defp send_after(interval) do
-    Process.send_after(self(), :run, interval)
   end
 end
