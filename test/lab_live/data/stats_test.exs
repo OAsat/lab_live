@@ -1,16 +1,17 @@
-defmodule LabLive.StatsTest do
+defmodule LabLive.Data.StatsTest do
   use ExUnit.Case
   use ExUnitProperties
-  doctest LabLive.Stats
+  alias LabLive.Data.Stats
+  doctest Stats
 
   test "max_size = inf" do
     check all(values <- list_of(float(min: -1.0, max: 1.0))) do
       stats =
-        Enum.reduce(values, %LabLive.Stats{}, fn value, stats ->
-          LabLive.Stats.append(stats, value)
+        Enum.reduce(values, %Stats{}, fn value, stats ->
+          Stats.append(stats, value)
         end)
 
-      from_list = LabLive.Stats.new(values)
+      from_list = Stats.new(values)
 
       assert stats.max_size == :inf
       assert stats.size == from_list.size
@@ -26,8 +27,8 @@ defmodule LabLive.StatsTest do
             values <- list_of(float(min: -1.0, max: 1.0))
           ) do
       stats =
-        Enum.reduce(values, LabLive.Stats.new([], max_size), fn value, stats ->
-          LabLive.Stats.append(stats, value)
+        Enum.reduce(values, Stats.new([], max_size), fn value, stats ->
+          Stats.append(stats, value)
         end)
 
       valid_size =
@@ -37,7 +38,7 @@ defmodule LabLive.StatsTest do
           length(values)
         end
 
-      from_list = LabLive.Stats.new(values |> Enum.take(-valid_size))
+      from_list = Stats.new(values |> Enum.take(-valid_size))
 
       assert stats.max_size == max_size
       assert stats.size == valid_size

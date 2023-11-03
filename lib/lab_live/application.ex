@@ -7,7 +7,7 @@ defmodule LabLive.Application do
   def start(_type, _args) do
     children = [
       LabLive.Instruments,
-      LabLive.PropertyManager,
+      LabLive.Data.Manager,
       LabLive.Execution.Supervisor,
       LabLive.Widgets
     ]
