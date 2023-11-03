@@ -3,7 +3,7 @@ defmodule LabLive.Data.CsvWriter do
   Functions for writing data to csv.
   """
 
-  import LabLive.Data.StorageManager
+  import LabLive.Data
 
   @doc """
   Returns header string with comment-out.
@@ -61,7 +61,7 @@ defmodule LabLive.Data.CsvWriter do
   end
 
   def init_csv(filepath_key, column_keys, comment_keys) do
-    comment = commented_header(labels(comment_keys), get_many(comment_keys), comment_keys)
+    comment = commented_header(labels(comment_keys), get(comment_keys), comment_keys)
     cols = columns(labels(column_keys), column_keys)
     header = "#{comment}\n#{cols}\n"
 
@@ -69,7 +69,7 @@ defmodule LabLive.Data.CsvWriter do
   end
 
   def write_csv(filepath_key, column_keys) do
-    data_str = data_to_string(get_many(column_keys), column_keys)
+    data_str = data_to_string(get(column_keys), column_keys)
     append_to_file(get(filepath_key), data_str)
   end
 end

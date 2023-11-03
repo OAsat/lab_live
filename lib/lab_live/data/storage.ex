@@ -23,6 +23,13 @@ defmodule LabLive.Data.Storage do
       %LabLive.Data.Stats{max_size: 2, queue: {[3], [2]}, size: 2, square_sum: 13, sum: 5}
   """
   defstruct [:value, :stats, :opts]
+
+  @type t() :: %__MODULE__{
+          value: any(),
+          stats: nil | LabLive.Data.Stats.t(),
+          opts: Keyword.t()
+        }
+
   alias LabLive.Data.Stats
   use Agent
 
@@ -58,5 +65,10 @@ defmodule LabLive.Data.Storage do
   @spec stats(GenServer.server()) :: nil | Stats.t()
   def stats(server) do
     Agent.get(server, fn %__MODULE__{stats: stats} -> stats end)
+  end
+
+  @spec get_state(GenServer.server()) :: t()
+  def get_state(server) do
+    Agent.get(server, fn state -> state end)
   end
 end
