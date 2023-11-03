@@ -8,7 +8,7 @@ defmodule LabLive.Application do
     children = [
       LabLive.Instruments,
       LabLive.PropertyManager,
-      LabLive.Execution,
+      LabLive.Execution.Supervisor,
       LabLive.Widgets
     ]
 

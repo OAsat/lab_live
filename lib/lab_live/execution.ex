@@ -8,7 +8,13 @@ defmodule LabLive.Execution do
 
   @impl GenServer
   def init(nil) do
-    {:ok, %LabLive.Execution{}}
+    send_after(0)
+    {:ok, LabLive.Execution.Stash.get()}
+  end
+
+  @impl GenServer
+  def terminate(_reason, state) do
+    LabLive.Execution.Stash.update(state)
   end
 
   @impl GenServer

@@ -28,7 +28,7 @@ defmodule LabLive.Instruments do
   @impl Supervisor
   def init(nil) do
     children = [
-      {DynamicSupervisor, name: @supervisor, strategy: :one_for_one},
+      {DynamicSupervisor, name: @supervisor, strategy: :one_for_one, max_restarts: 50},
       {Registry, keys: :unique, name: @registry}
     ]
 
