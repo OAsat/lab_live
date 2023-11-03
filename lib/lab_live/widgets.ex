@@ -28,7 +28,7 @@ defmodule LabLive.Widgets do
 
     Kino.Frame.render(
       state.diagram_frame,
-      LabLive.Diagram.to_mermaid_markdown(diagram, running: status)
+      LabLive.Execution.Diagram.to_mermaid_markdown(diagram, running: status)
     )
 
     {:noreply, state}
