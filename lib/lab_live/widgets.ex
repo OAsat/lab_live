@@ -50,7 +50,7 @@ defmodule LabLive.Widgets do
     stream = Kino.Control.tagged_stream(start: start, pause: pause)
 
     Kino.listen(stream, fn
-      {:start, _event} -> LabLive.Execution.Worker.start()
+      {:start, _event} -> LabLive.Execution.Worker.start_run()
       {:pause, _event} -> LabLive.Execution.Worker.pause()
     end)
   end

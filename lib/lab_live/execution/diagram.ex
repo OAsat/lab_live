@@ -1,4 +1,20 @@
 defmodule LabLive.Execution.Diagram do
+  @moduledoc """
+  Diagram of execution.
+
+  ### Example
+  ```
+  #{File.read!("test/support/sample_diagram.ex")}
+  ```
+  """
+
+  @type diagram :: map()
+  @type stage ::
+          :start
+          | :finish
+          | {atom(), atom()}
+          | [f: function(), str: String.t(), branch: map() | Keyword.t()]
+
   defmacro branch(exp, branch) do
     exp_str = quote(do: unquote(exp)) |> Macro.to_string()
 
@@ -7,6 +23,12 @@ defmodule LabLive.Execution.Diagram do
     end
   end
 
+  @doc """
+  Converts a diagram to a string of mermaid diagram.
+
+      iex> import LabLive.Execution.Diagram
+      iex> to_mermaid(SampleDiagram.diagram)
+  """
   def to_mermaid(diagram, opts \\ []) do
     running = opts[:running]
 
@@ -28,6 +50,9 @@ defmodule LabLive.Execution.Diagram do
     Enum.join([head | tail], "\n")
   end
 
+  @doc """
+  Converts a diagram to a string of mermaid diagram in markdown format.
+  """
   def to_mermaid_markdown(map, opts \\ []) do
     """
     ```mermaid
@@ -57,5 +82,24 @@ defmodule LabLive.Execution.Diagram do
       end
 
     [head | tail] |> Enum.join("\n")
+  end
+
+  @spec run_step(diagram(), stage()) :: stage()
+  def run_step(diagram, :start) do
+    diagram[:start]
+  end
+
+  def run_step(_diagram, :finish) do
+    :finish
+  end
+
+  def run_step(diagram, {module, function} = stage) when is_atom(module) and is_atom(function) do
+    Kernel.apply(module, function, [])
+    diagram[stage]
+  end
+
+  def run_step(_diagram, f: function, str: _, branch: branch)
+      when is_function(function, 0) do
+    branch[function.()]
   end
 end

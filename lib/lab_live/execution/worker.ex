@@ -3,11 +3,18 @@ defmodule LabLive.Execution.Worker do
   Worker to run execution diagram.
   """
   use GenServer
+  alias LabLive.Execution.Diagram
 
   defmodule State do
     @moduledoc false
     defstruct diagram: %{}, status: :start, idle?: true
   end
+
+  @type state :: %State{
+          diagram: Diagram.diagram(),
+          status: Diagram.stage(),
+          idle?: boolean()
+        }
 
   def start_link(_opts) do
     GenServer.start_link(__MODULE__, nil, name: __MODULE__)
@@ -48,7 +55,7 @@ defmodule LabLive.Execution.Worker do
       {:noreply, state}
     else
       telemetry_update_state(state)
-      {:noreply, run(state)}
+      {:noreply, run_step(state)}
     end
   end
 
@@ -57,13 +64,13 @@ defmodule LabLive.Execution.Worker do
     {:reply, state, state}
   end
 
-  @spec set_diagram(map()) :: :ok
+  @spec set_diagram(Diagram.diagram()) :: :ok
   def set_diagram(diagram) do
     GenServer.cast(__MODULE__, {:set_diagram, diagram})
   end
 
-  @spec start() :: :ok
-  def start() do
+  @spec start_run() :: :ok
+  def start_run() do
     GenServer.cast(__MODULE__, :start)
   end
 
@@ -72,7 +79,7 @@ defmodule LabLive.Execution.Worker do
     GenServer.cast(__MODULE__, :pause)
   end
 
-  @spec get_state() :: any()
+  @spec get_state() :: state()
   def get_state() do
     GenServer.call(__MODULE__, :get_state)
   end
@@ -85,28 +92,14 @@ defmodule LabLive.Execution.Worker do
     :telemetry.execute([:lab_live, :execution, :update_state], %{state: state})
   end
 
-  defp run(%State{status: :start} = state) do
-    next = state.diagram[:start]
-    send_after(0)
-    %{state | status: next}
-  end
+  defp run_step(%State{} = state) do
+    case Diagram.run_step(state.diagram, state.status) do
+      :finish ->
+        %State{state | status: :finish, idle?: true}
 
-  defp run(%State{status: :finish} = state) do
-    %{state | idle?: true}
-  end
-
-  defp run(%State{status: {module, function}} = state)
-       when is_atom(module) and is_atom(function) do
-    Kernel.apply(module, function, [])
-    next = state.diagram[state.status]
-    send_after(100)
-    %{state | status: next}
-  end
-
-  defp run(%State{status: [f: function, str: _, branch: branch]} = state)
-       when is_function(function, 0) do
-    next = branch[function.()]
-    send_after(0)
-    %{state | status: next}
+      next ->
+        send_after(0)
+        %State{state | status: next}
+    end
   end
 end
