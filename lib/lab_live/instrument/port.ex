@@ -1,26 +1,23 @@
-defmodule LabLive.Instrument do
+defmodule LabLive.Instrument.Port do
   @moduledoc """
-  Sever to communicate with measurement instruments.
+  Sever to communicate with measurement instrument.
 
-  See `LabLive.Instrument.Dummy`, `LabLive.Instrument.Tcp`, and `LabLive.Instrument.Pyvisa` for examples.
+  See `LabLive.Instrument.Impl.Dummy` for examples.
 
   ### Example
-  (For the definition of `Lakeshore350.dummy/0` and `Lakeshore350`, see `LabLive.Model`.)
+  (For the definition of `Lakeshore350.dummy/0` and `Lakeshore350`, see `LabLive.Instrument.Model`.)
+      iex> alias LabLive.Instrument.Port
       iex> map = Lakeshore350.dummy()
-      iex> {:ok, pid} = LabLive.Instrument.start_link({:ls350, LabLive.Instrument.Dummy, map: map})
-      iex> LabLive.Instrument.read(pid, "SETP? 2\\n")
+      iex> {:ok, pid} = Port.start_link({:ls350, LabLive.Instrument.Impl.Dummy, map: map})
+      iex> Port.read(pid, "SETP? 2\\n")
       "1.0\\r\\n"
-      iex> LabLive.Instrument.read(pid, Lakeshore350, :ramp, channel: 2)
+      iex> Port.read(pid, Lakeshore350, :ramp, channel: 2)
       %{onoff: 1, kpermin: 0.2}
-      iex> LabLive.Instrument.read_joined(pid, Lakeshore350, sensor: [channel: "A"], heater: [channel: 2])
+      iex> Port.read_joined(pid, Lakeshore350, sensor: [channel: "A"], heater: [channel: 2])
       [sensor: %{ohm: 1200.0}, heater: %{percentage: 56.7}]
   """
-  @callback init(opts :: any()) :: state :: any()
-  @callback read(message :: binary(), state :: any()) :: {answer :: binary(), info :: any()}
-  @callback after_reply(info :: any(), state :: any()) :: any()
-  @callback write(message :: binary(), state :: any()) :: :ok
-
   use GenServer
+  alias LabLive.Instrument.Model
 
   @impl GenServer
   def init({name, impl, opts}) do
@@ -79,12 +76,12 @@ defmodule LabLive.Instrument do
   end
 
   def read(pid, model, key, opts \\ []) when is_atom(key) and is_list(opts) do
-    {query, parser} = LabLive.Model.get_reader(model, key, opts)
+    {query, parser} = Model.get_reader(model, key, opts)
     read(pid, query) |> parser.()
   end
 
   def read_joined(pid, model, keys_and_opts) when is_list(keys_and_opts) do
-    {query, parser} = LabLive.Model.get_joined_reader(model, keys_and_opts)
+    {query, parser} = Model.get_joined_reader(model, keys_and_opts)
     read(pid, query) |> parser.()
   end
 
@@ -93,12 +90,12 @@ defmodule LabLive.Instrument do
   end
 
   def write(pid, model, key, opts \\ []) do
-    query = LabLive.Model.get_writer(model, key, opts)
+    query = Model.get_writer(model, key, opts)
     write(pid, query)
   end
 
   def write_joined(pid, model, keys_and_opts) when is_list(keys_and_opts) do
-    query = LabLive.Model.get_joined_writer(model, keys_and_opts)
+    query = Model.get_joined_writer(model, keys_and_opts)
     write(pid, query)
   end
 end

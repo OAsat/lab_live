@@ -1,10 +1,10 @@
-defmodule LabLive.Instrument.Pyvisa do
-  alias LabLive.Instrument
+defmodule LabLive.Instrument.Impl.Pyvisa do
+  alias LabLive.Instrument.Impl
+  @behaviour Impl
 
-  @behaviour Instrument
   @python_src File.cwd!() |> Path.join("python/lab_live_pyvisa") |> to_charlist()
 
-  @impl Instrument
+  @impl Impl
   def init(opts) do
     python = Keyword.get(opts, :python)
     address = Keyword.get(opts, :address)
@@ -12,7 +12,7 @@ defmodule LabLive.Instrument.Pyvisa do
     {python_pid, address}
   end
 
-  @impl Instrument
+  @impl Impl
   def read(message, {python_pid, address}) do
     answer =
       :python.call(python_pid, :communicate, :query, [address, message])
@@ -21,12 +21,12 @@ defmodule LabLive.Instrument.Pyvisa do
     {answer, nil}
   end
 
-  @impl Instrument
+  @impl Impl
   def after_reply(nil, _state) do
     nil
   end
 
-  @impl Instrument
+  @impl Impl
   def write(message, {python_pid, address}) do
     :python.call(python_pid, :communicate, :write, [address, message])
     :ok

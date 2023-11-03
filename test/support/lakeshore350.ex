@@ -1,5 +1,5 @@
 defmodule Lakeshore350 do
-  use LabLive.Model
+  use LabLive.Instrument.Model
   def read_termination, do: "\r\n"
 
   def read_format(:setp), do: {"SETP? {{channel}}", "{{kelvin:float}}"}

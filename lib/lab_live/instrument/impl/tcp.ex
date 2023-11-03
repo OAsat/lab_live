@@ -1,29 +1,29 @@
-defmodule LabLive.Instrument.Tcp do
-  alias LabLive.Instrument
+defmodule LabLive.Instrument.Impl.Tcp do
+  alias LabLive.Instrument.Impl
+  @behaviour Impl
 
-  @behaviour Instrument
   @tcp_opts [:binary, packet: 0, active: false, reuseaddr: true]
 
-  @impl Instrument
+  @impl Impl
   def init(opts) do
     address = Keyword.get(opts, :address)
     port = Keyword.get(opts, :port)
     {address, port}
   end
 
-  @impl Instrument
+  @impl Impl
   def read(message, {address, port}) do
     socket = connect_and_send(message, address, port)
     {:ok, answer} = :gen_tcp.recv(socket, 0, 1000)
     {answer, socket}
   end
 
-  @impl Instrument
+  @impl Impl
   def after_reply(socket, _state) do
     :gen_tcp.close(socket)
   end
 
-  @impl Instrument
+  @impl Impl
   def write(message, {address, port}) do
     connect_and_send(message, address, port) |> :gen_tcp.close()
 
