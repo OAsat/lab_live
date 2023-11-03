@@ -7,7 +7,7 @@ defmodule LabLive.Instrument.Model do
   #{File.read!("test/support/lakeshore350.ex")}
   ```
   """
-  alias LabLive.Format
+  alias LabLive.Instrument.Model.Format
 
   @callback read_termination() :: String.t()
   @callback write_termination() :: String.t()

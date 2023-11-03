@@ -59,7 +59,7 @@ defmodule LabLive.Widgets do
     content =
       for {key, opts} <- props do
         label = Keyword.get(opts, :label, to_string(key))
-        "|#{key}|#{label}|#{LabLive.Data.Manager.get(key)}|"
+        "|#{key}|#{label}|#{LabLive.Data.StorageManager.get(key)}|"
       end
       |> Enum.join("\n")
 

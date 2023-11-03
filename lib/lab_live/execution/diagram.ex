@@ -1,4 +1,4 @@
-defmodule LabLive.Diagram do
+defmodule LabLive.Execution.Diagram do
   defmacro branch(exp, branch) do
     exp_str = quote(do: unquote(exp)) |> Macro.to_string()
 

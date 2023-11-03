@@ -1,4 +1,4 @@
-defmodule LabLive.CsvWriter do
+defmodule LabLive.Data.CsvWriter do
   @moduledoc """
   Functions for writing data to csv.
   """
@@ -11,7 +11,7 @@ defmodule LabLive.CsvWriter do
       iex> labels = %{a: "label a", b: "label b", c: "label c"}
       iex> values = [a: 10, b: 1.23, c: "value"]
       iex> order = [:b, :a, :c]
-      iex> LabLive.CsvWriter.commented_header(labels, values, order)
+      iex> LabLive.Data.CsvWriter.commented_header(labels, values, order)
       "#label b: 1.23\\n#label a: 10\\n#label c: value"
   """
   def commented_header(labels, values, order, comment \\ "#") do
@@ -26,7 +26,7 @@ defmodule LabLive.CsvWriter do
 
       iex> labels = %{x: "x(mm)", y: "y(cm)", z: "z(m)"}
       iex> order = [:y, :x, :z]
-      iex> LabLive.CsvWriter.columns(labels, order)
+      iex> LabLive.Data.CsvWriter.columns(labels, order)
       "y(cm),x(mm),z(m)"
   """
   def columns(labels, order, joiner \\ ",") do
