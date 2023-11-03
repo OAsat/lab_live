@@ -1,8 +1,8 @@
-defmodule LabLive.Data.Manager do
+defmodule LabLive.Data.StorageManager do
   @moduledoc """
   Supervisor to manage properties by keys.
 
-      iex> import LabLive.Data.Manager
+      iex> import LabLive.Data.StorageManager
       iex> {:ok, _pid} = start_property(:a)
       iex> 10 |> update(:a)
       :ok
@@ -10,7 +10,7 @@ defmodule LabLive.Data.Manager do
       10
 
   Starting multiple properties:
-      iex> import LabLive.Data.Manager
+      iex> import LabLive.Data.StorageManager
       iex> props = [b: [], c: [label: "label of c"]]
       iex> [b: {:ok, _pid_b}, c: {:ok, _pid_c}] = start_props(props)
       iex> opts(:c)
