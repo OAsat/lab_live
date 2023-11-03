@@ -22,11 +22,11 @@ defmodule LabLive.Telemetry do
   end
 
   def update_widget(
-        [:lab_live, :execution, :update_status],
-        %{exec_state: exec_state},
+        [:lab_live, :execution, :update_state],
+        %{state: state},
         _meta,
         _config
       ) do
-    LabLive.Widgets.update_diagram(exec_state)
+    LabLive.Widgets.update_diagram(state)
   end
 end

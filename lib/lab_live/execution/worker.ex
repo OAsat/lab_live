@@ -1,6 +1,13 @@
-defmodule LabLive.Execution do
-  defstruct diagram: %{}, status: :start, idle?: true
+defmodule LabLive.Execution.Worker do
+  @moduledoc """
+  Worker to run execution diagram.
+  """
   use GenServer
+
+  defmodule State do
+    @moduledoc false
+    defstruct diagram: %{}, status: :start, idle?: true
+  end
 
   def start_link(_opts) do
     GenServer.start_link(__MODULE__, nil, name: __MODULE__)
@@ -19,8 +26,8 @@ defmodule LabLive.Execution do
 
   @impl GenServer
   def handle_cast({:set_diagram, diagram}, _state) do
-    new_state = %LabLive.Execution{diagram: diagram}
-    :telemetry.execute([:lab_live, :execution, :update_status], %{exec_state: new_state})
+    new_state = %State{diagram: diagram}
+    telemetry_update_state(new_state)
     {:noreply, new_state}
   end
 
@@ -40,35 +47,43 @@ defmodule LabLive.Execution do
     if state.idle? do
       {:noreply, state}
     else
-      :telemetry.execute([:lab_live, :execution, :update_status], %{exec_state: state})
-      run(state)
+      telemetry_update_state(state)
+      {:noreply, run(state)}
     end
   end
 
-  defp run(%LabLive.Execution{status: :start} = state) do
-    next = state.diagram[:start]
-    send_after(0)
-    {:noreply, %{state | status: next}}
+  @impl GenServer
+  def handle_call(:get_state, _from, state) do
+    {:reply, state, state}
   end
 
-  defp run(%LabLive.Execution{status: {module, function}} = state)
+  defp telemetry_update_state(state) do
+    :telemetry.execute([:lab_live, :execution, :update_state], %{state: state})
+  end
+
+  defp run(%State{status: :start} = state) do
+    next = state.diagram[:start]
+    send_after(0)
+    %{state | status: next}
+  end
+
+  defp run(%State{status: :finish} = state) do
+    %{state | idle?: true}
+  end
+
+  defp run(%State{status: {module, function}} = state)
        when is_atom(module) and is_atom(function) do
     Kernel.apply(module, function, [])
     next = state.diagram[state.status]
     send_after(100)
-    {:noreply, %{state | status: next}}
+    %{state | status: next}
   end
 
-  defp run(%LabLive.Execution{status: [f: function, str: _, branch: branch]} = state)
+  defp run(%State{status: [f: function, str: _, branch: branch]} = state)
        when is_function(function, 0) do
     next = branch[function.()]
     send_after(0)
-    {:noreply, %{state | status: next}}
-  end
-
-  @impl GenServer
-  def handle_call(:get, _from, state) do
-    {:reply, state, state}
+    %{state | status: next}
   end
 
   def set_diagram(diagram) do
@@ -83,8 +98,8 @@ defmodule LabLive.Execution do
     GenServer.cast(__MODULE__, :pause)
   end
 
-  def get() do
-    GenServer.call(__MODULE__, :get)
+  def get_state() do
+    GenServer.call(__MODULE__, :get_state)
   end
 
   defp send_after(interval) do

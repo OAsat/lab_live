@@ -26,7 +26,7 @@ defmodule LabLive.Application do
     :ok =
       :telemetry.attach(
         "lab_live execution handler",
-        [:lab_live, :execution, :update_status],
+        [:lab_live, :execution, :update_state],
         &LabLive.Telemetry.update_widget/4,
         nil
       )

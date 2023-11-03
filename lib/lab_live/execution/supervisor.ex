@@ -5,7 +5,7 @@ defmodule LabLive.Execution.Supervisor do
   def init(nil) do
     children = [
       LabLive.Execution.Stash,
-      LabLive.Execution
+      LabLive.Execution.Worker
     ]
 
     Supervisor.init(children, strategy: :one_for_one, max_restarts: 50)
