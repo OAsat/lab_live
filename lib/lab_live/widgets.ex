@@ -1,6 +1,5 @@
 defmodule LabLive.Widgets do
   use GenServer
-  alias LabLive.PropertyManager
 
   def start_under_kino() do
     Kino.start_child(__MODULE__)
@@ -51,8 +50,8 @@ defmodule LabLive.Widgets do
     stream = Kino.Control.tagged_stream(start: start, pause: pause)
 
     Kino.listen(stream, fn
-      {:start, _event} -> LabLive.Execution.start()
-      {:pause, _event} -> LabLive.Execution.pause()
+      {:start, _event} -> LabLive.Execution.Worker.start()
+      {:pause, _event} -> LabLive.Execution.Worker.pause()
     end)
   end
 
@@ -60,7 +59,7 @@ defmodule LabLive.Widgets do
     content =
       for {key, opts} <- props do
         label = Keyword.get(opts, :label, to_string(key))
-        "|#{key}|#{label}|#{PropertyManager.get(key)}|"
+        "|#{key}|#{label}|#{LabLive.Data.StorageManager.get(key)}|"
       end
       |> Enum.join("\n")
 

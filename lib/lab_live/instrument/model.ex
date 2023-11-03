@@ -1,4 +1,4 @@
-defmodule LabLive.Model do
+defmodule LabLive.Instrument.Model do
   @moduledoc """
   A module to define the format of communication with measurement instruments.
 
@@ -7,7 +7,7 @@ defmodule LabLive.Model do
   #{File.read!("test/support/lakeshore350.ex")}
   ```
   """
-  alias LabLive.Format
+  alias LabLive.Instrument.Model.Format
 
   @callback read_termination() :: String.t()
   @callback write_termination() :: String.t()
@@ -50,7 +50,7 @@ defmodule LabLive.Model do
   @doc """
   Returns a read query and parser function for returned answer.
 
-      iex> {query, parser} = LabLive.Model.get_reader(Lakeshore350, :ramp, channel: 1)
+      iex> {query, parser} = LabLive.Instrument.Model.get_reader(Lakeshore350, :ramp, channel: 1)
       iex> query
       "RAMP? 1\\n"
       iex> parser.("1,0.2\\r\\n")
@@ -77,7 +77,7 @@ defmodule LabLive.Model do
   @doc """
   Returns a read query for joined commands and parser function for returned answer.
 
-      iex> {query, parser} = LabLive.Model.get_joined_reader(Lakeshore350,
+      iex> {query, parser} = LabLive.Instrument.Model.get_joined_reader(Lakeshore350,
       ...>   ramp: [channel: 1],
       ...>   heater: [channel: 1],
       ...>   kelvin: [channel: "A"],
@@ -125,10 +125,10 @@ defmodule LabLive.Model do
   @doc """
   Returns a write query to write.
 
-      iex> LabLive.Model.get_writer(Lakeshore350, :setp, channel: 1, kelvin: 300.0)
+      iex> LabLive.Instrument.Model.get_writer(Lakeshore350, :setp, channel: 1, kelvin: 300.0)
       iex> "SETP 1,300.0\\n"
 
-      iex> LabLive.Model.get_writer(Lakeshore350, :ramp, channel: 1, binary: 0, kpermin: 0.5)
+      iex> LabLive.Instrument.Model.get_writer(Lakeshore350, :ramp, channel: 1, binary: 0, kpermin: 0.5)
       iex> "RAMP 1,0,0.5\\n"
   """
   def get_writer(model, key, opts) do
@@ -139,7 +139,7 @@ defmodule LabLive.Model do
   @doc """
   Returns a write query for joined commands.
 
-      iex> LabLive.Model.get_joined_reader(Lakeshore350,
+      iex> LabLive.Instrument.Model.get_joined_reader(Lakeshore350,
       ...>   ramp: [channel: 1, binary: 0, kpermin: 0.5],
       ...>   setp: [channel: 1, kelvin: 300.0],
       ...>   range: [channel: 1, level: 5]

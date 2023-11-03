@@ -1,11 +1,11 @@
-defmodule LabLive.ModelTest do
+defmodule LabLive.Instrument.ModelTest do
   use ExUnit.Case
   use ExUnitProperties
-  doctest LabLive.Model
+  doctest LabLive.Instrument.Model
 
   test "termination character" do
     defmodule CheckTerm do
-      use LabLive.Model
+      use LabLive.Instrument.Model
 
       def write_termination() do
         "\r"

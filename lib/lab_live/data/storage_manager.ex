@@ -1,8 +1,8 @@
-defmodule LabLive.PropertyManager do
+defmodule LabLive.Data.StorageManager do
   @moduledoc """
   Supervisor to manage properties by keys.
 
-      iex> import LabLive.PropertyManager
+      iex> import LabLive.Data.StorageManager
       iex> {:ok, _pid} = start_property(:a)
       iex> 10 |> update(:a)
       :ok
@@ -10,7 +10,7 @@ defmodule LabLive.PropertyManager do
       10
 
   Starting multiple properties:
-      iex> import LabLive.PropertyManager
+      iex> import LabLive.Data.StorageManager
       iex> props = [b: [], c: [label: "label of c"]]
       iex> [b: {:ok, _pid_b}, c: {:ok, _pid_c}] = start_props(props)
       iex> opts(:c)
@@ -23,10 +23,10 @@ defmodule LabLive.PropertyManager do
       [b: 20, c: 30]
   """
   use Supervisor
-  alias LabLive.Property
+  alias LabLive.Data.Storage
 
-  @registry LabLive.PropertyRegistry
-  @supervisor LabLive.PropertySupervisor
+  @registry LabLive.Data.Storage.Registry
+  @supervisor LabLive.Data.Storage.Supervisor
 
   @impl Supervisor
   def init(:ok) do
@@ -47,7 +47,7 @@ defmodule LabLive.PropertyManager do
   def start_property(name, opts \\ []) do
     via = {:via, Registry, {@registry, name, opts}}
     new_opts = Keyword.put(opts, :name, via)
-    DynamicSupervisor.start_child(@supervisor, {Property, new_opts})
+    DynamicSupervisor.start_child(@supervisor, {Storage, new_opts})
   end
 
   @spec start_props(map() | Keyword.t()) :: Keyword.t()
@@ -74,7 +74,7 @@ defmodule LabLive.PropertyManager do
 
   @spec update(any(), atom()) :: any()
   def update(value, key) do
-    pid(key) |> Property.update(value)
+    pid(key) |> Storage.update(value)
   end
 
   def update_many(keys_and_values) do
@@ -86,11 +86,11 @@ defmodule LabLive.PropertyManager do
 
   @spec get(atom()) :: any()
   def get(key) do
-    pid(key) |> Property.get()
+    pid(key) |> Storage.get()
   end
 
   def stats(key) do
-    pid(key) |> Property.stats()
+    pid(key) |> Storage.stats()
   end
 
   def get_many(keys) do
