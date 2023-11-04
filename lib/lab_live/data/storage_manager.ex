@@ -38,7 +38,7 @@ defmodule LabLive.Data.StorageManager do
 
   def info(key) do
     case Registry.lookup(@registry, key) do
-      [] -> raise "Variable #{key} not found."
+      [] -> raise "Storage #{key} not found."
       [{pid, opts}] -> {pid, opts}
     end
   end

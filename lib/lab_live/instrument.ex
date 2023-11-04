@@ -59,4 +59,32 @@ defmodule LabLive.Instrument do
     {pid, model} = PortManager.info(key)
     Port.write_joined(pid, model, query_keys_and_opts)
   end
+
+  def render_controller() do
+    inst_labels =
+      PortManager.keys_and_pids()
+      |> Enum.map(fn {key, _pid} -> {key, "#{key}"} end)
+
+    form =
+      Kino.Control.form(
+        [
+          inst: Kino.Input.select("Instrument", inst_labels),
+          query: Kino.Input.text("Query"),
+          method: Kino.Input.select("Read/Write", read: "Read", write: "Write")
+        ],
+        submit: "Send"
+      )
+
+    Kino.listen(
+      form,
+      fn %{data: %{inst: inst, query: query, method: method}} ->
+        case method do
+          :read -> read(inst, query <> "\n")
+          :write -> write(inst, query <> "\n")
+        end
+      end
+    )
+
+    form
+  end
 end

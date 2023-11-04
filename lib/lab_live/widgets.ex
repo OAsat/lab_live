@@ -41,32 +41,4 @@ defmodule LabLive.Widgets do
   def render_diagram() do
     GenServer.cast(__MODULE__, :render_diagram)
   end
-
-  def render_exec_buttons() do
-    start = Kino.Control.button("Start")
-    pause = Kino.Control.button("Pause")
-    Kino.Layout.grid([start, pause]) |> Kino.render()
-
-    stream = Kino.Control.tagged_stream(start: start, pause: pause)
-
-    Kino.listen(stream, fn
-      {:start, _event} -> LabLive.Execution.Worker.start_run()
-      {:pause, _event} -> LabLive.Execution.Worker.pause()
-    end)
-  end
-
-  def render_props(props) do
-    content =
-      for {key, opts} <- props do
-        label = Keyword.get(opts, :label, to_string(key))
-        "|#{key}|#{label}|#{LabLive.Data.StorageManager.get(key)}|"
-      end
-      |> Enum.join("\n")
-
-    Kino.Markdown.new("|key|label|value|\n|--|--|--|\n" <> content)
-  end
-
-  def monitor_props(props, interval \\ 100) do
-    Kino.animate(interval, fn _ -> render_props(props) end)
-  end
 end

@@ -65,4 +65,12 @@ defmodule LabLive.Instrument.PortManager do
   defp via_name(key, model) do
     {:via, Registry, {@registry, key, model}}
   end
+
+  def keys_and_pids() do
+    Supervisor.which_children(@supervisor)
+    |> Enum.map(fn {_, pid, _, _} ->
+      key = Registry.keys(@registry, pid) |> List.first()
+      {key, pid}
+    end)
+  end
 end

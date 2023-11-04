@@ -1,7 +1,7 @@
 defmodule LabLive.Execution.WorkerTest do
-  alias LabLive.ExecutionTest.SampleExecution
   alias LabLive.Execution.Worker
-  import LabLive.Execution.Diagram
+  alias LabLive.ExecutionTest.SampleExecution
+  import LabLive.Execution
   use ExUnit.Case
 
   doctest Worker

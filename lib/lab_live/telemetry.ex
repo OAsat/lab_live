@@ -7,11 +7,7 @@ defmodule LabLive.Telemetry do
         _meta,
         _config
       ) do
-    name =
-      case opts[:key] do
-        nil -> opts[:name]
-        key -> key
-      end
+    name = if opts[:key] == nil, do: opts[:name], else: opts[:key]
 
     Logger.info(
       "Instrument|#{event}|#{inspect(name)}| query:#{inspect(query)}, answer:#{inspect(answer)}"

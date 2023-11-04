@@ -15,14 +15,6 @@ defmodule LabLive.Execution.Diagram do
           | {atom(), atom()}
           | [f: function(), str: String.t(), branch: map() | Keyword.t()]
 
-  defmacro branch(exp, branch) do
-    exp_str = quote(do: unquote(exp)) |> Macro.to_string()
-
-    quote do
-      [f: fn -> unquote(exp) end, str: unquote(exp_str), branch: unquote(branch)]
-    end
-  end
-
   @doc """
   Converts a diagram to a string of mermaid diagram.
 

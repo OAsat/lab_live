@@ -1,5 +1,5 @@
 defmodule SampleDiagram do
-  import LabLive.Execution.Diagram
+  import LabLive.Execution
 
   defmodule E do
     def hello, do: nil

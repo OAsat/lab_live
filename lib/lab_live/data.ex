@@ -80,4 +80,19 @@ defmodule LabLive.Data do
       {key, get(key)}
     end
   end
+
+  def render(storages) do
+    content =
+      for {key, opts} <- storages do
+        label = Keyword.get(opts, :label, to_string(key))
+        "|#{key}|#{label}|#{get(key)}|"
+      end
+      |> Enum.join("\n")
+
+    Kino.Markdown.new("|key|label|value|\n|--|--|--|\n" <> content)
+  end
+
+  def monitor(storages, interval \\ 100) do
+    Kino.animate(interval, fn _ -> render(storages) end)
+  end
 end
