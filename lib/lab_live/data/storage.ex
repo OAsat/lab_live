@@ -3,46 +3,65 @@ defmodule LabLive.Data.Storage do
   Server to hold a value.
 
       iex> alias LabLive.Data.Storage
-      iex> {:ok, pid} = Storage.start_link(name: :a)
+      iex> {:ok, pid} = Storage.start_link()
       iex> Storage.get(pid)
-      :empty
+      nil
       iex> Storage.update(pid, 1)
       iex> Storage.get(pid)
       1
 
+  Starting with a name.
       iex> alias LabLive.Data.Storage
-      iex> {:ok, pid} = Storage.start_link(name: :b, stats: 2)
+      iex> {:ok, _pid} = Storage.start_link(name: :my_storage)
+      iex> Storage.update(:my_storage, 1)
+      iex> Storage.get(:my_storage)
+      1
+
+  Starting with an initial value.
+      iex> alias LabLive.Data.Storage
+      iex> {:ok, pid} = Storage.start_link(init: 10)
+      iex> Storage.get(pid)
+      10
+
+  Statistics of cached values.
+      iex> alias LabLive.Data.Storage
+      iex> {:ok, pid} = Storage.start_link(stats: 3, init: 10)
+      iex> Storage.stats(pid)
+      %LabLive.Data.Stats{max_size: 3, queue: {[10], []}, size: 1, square_sum: 100, sum: 10}
       iex> Storage.update(pid, 1)
       iex> Storage.stats(pid)
-      %LabLive.Data.Stats{max_size: 2, queue: {[1], []}, size: 1, square_sum: 1, sum: 1}
+      %LabLive.Data.Stats{max_size: 3, queue: {[1], [10]}, size: 2, square_sum: 101, sum: 11}
       iex> Storage.update(pid, 2)
       iex> Storage.stats(pid)
-      %LabLive.Data.Stats{max_size: 2, queue: {[2], [1]}, size: 2, square_sum: 5, sum: 3}
+      %LabLive.Data.Stats{max_size: 3, queue: {[2, 1], [10]}, size: 3, square_sum: 105, sum: 13}
       iex> Storage.update(pid, 3)
       iex> Storage.stats(pid)
-      %LabLive.Data.Stats{max_size: 2, queue: {[3], [2]}, size: 2, square_sum: 13, sum: 5}
+      %LabLive.Data.Stats{max_size: 3, queue: {[3], [1, 2]}, size: 3, square_sum: 14, sum: 6}
   """
   defstruct [:value, :stats, :opts]
-
-  @type t() :: %__MODULE__{
-          value: any(),
-          stats: nil | LabLive.Data.Stats.t(),
-          opts: Keyword.t()
-        }
 
   alias LabLive.Data.Stats
   use Agent
 
-  def start_link(opts) do
-    init_stats =
-      case opts[:stats] do
-        nil -> nil
-        true -> %Stats{max_size: :inf}
-        n -> %Stats{max_size: n}
+  @type t() :: %__MODULE__{
+          value: any(),
+          stats: nil | Stats.t(),
+          opts: Keyword.t()
+        }
+
+  @type opt() :: {atom(), any()} | {:stats, Stats.max_size()} | {:init, any()}
+  @type opts() :: [opt()]
+
+  def start_link(opts \\ []) do
+    stats =
+      case {opts[:stats], opts[:init]} do
+        {nil, _} -> nil
+        {max_size, nil} -> Stats.new([], max_size)
+        {max_size, init} -> Stats.new([init], max_size)
       end
 
     Agent.start_link(
-      fn -> %__MODULE__{value: :empty, stats: init_stats, opts: opts} end,
+      fn -> %__MODULE__{value: opts[:init], stats: stats, opts: opts} end,
       name: opts[:name]
     )
   end
