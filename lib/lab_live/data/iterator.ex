@@ -5,6 +5,9 @@ defmodule LabLive.Data.Iterator do
       iex> alias LabLive.Data.Iterator
       iex> iter = Iterator.new([5, 6, 7])
       iex> Iterator.value(iter)
+      :not_started
+      iex> iter = Iterator.step(iter)
+      iex> Iterator.value(iter)
       5
       iex> Iterator.finish?(iter)
       false
@@ -23,10 +26,7 @@ defmodule LabLive.Data.Iterator do
       7
       iex> iter = Iterator.reset(iter)
       iex> Iterator.value(iter)
-      5
-
-      iex> LabLive.Data.Iterator.new([1, 2, 3, 4]) |> to_string()
-      "1 <- [1, 2, 3, 4]"
+      :not_started
   """
   defstruct [:count, :list]
 
@@ -39,12 +39,12 @@ defmodule LabLive.Data.Iterator do
   alias LabLive.Data
 
   @type t() :: %__MODULE__{
-          count: non_neg_integer(),
+          count: :not_started | non_neg_integer(),
           list: list()
         }
 
   def new(list) when is_list(list) do
-    %__MODULE__{count: 0, list: list}
+    %__MODULE__{count: :not_started, list: list}
   end
 
   def value(key) when is_atom(key) do
@@ -52,7 +52,10 @@ defmodule LabLive.Data.Iterator do
   end
 
   def value(%__MODULE__{} = iterator) do
-    iterator.list |> Enum.at(iterator.count)
+    case iterator.count do
+      :not_started -> :not_started
+      count -> iterator.list |> Enum.at(count)
+    end
   end
 
   def step(key) when is_atom(key) do
@@ -63,7 +66,10 @@ defmodule LabLive.Data.Iterator do
     if finish?(iterator) do
       iterator
     else
-      %__MODULE__{iterator | count: iterator.count + 1}
+      case iterator.count do
+        :not_started -> %__MODULE__{iterator | count: 0}
+        count -> %__MODULE__{iterator | count: count + 1}
+      end
     end
   end
 
@@ -72,7 +78,7 @@ defmodule LabLive.Data.Iterator do
   end
 
   def reset(%__MODULE__{} = iterator) do
-    %{iterator | count: 0}
+    %{iterator | count: :not_started}
   end
 
   def finish?(key) when is_atom(key) do
@@ -80,11 +86,23 @@ defmodule LabLive.Data.Iterator do
   end
 
   def finish?(%__MODULE__{} = iterator) do
-    iterator.count + 1 >= length(iterator.list)
+    case iterator.count do
+      :not_started -> false
+      count -> count + 1 >= length(iterator.list)
+    end
   end
 
+  @doc """
+  to_string
+
+      iex> iter = LabLive.Data.Iterator.new([1, 2, 3, 4])
+      iex> LabLive.Data.Iterator.to_string(iter)
+      "not_started <- [1, 2, 3, 4]"
+      iex> iter |> LabLive.Data.Iterator.step() |> to_string()
+      "1 <- [1, 2, 3, 4]"
+  """
   def to_string(%__MODULE__{} = iterator) do
     list_str = iterator.list |> Enum.map(&Kernel.to_string/1) |> Enum.join(", ")
-    "#{iterator.list |> Enum.at(iterator.count)} <- [#{list_str}]"
+    "#{value(iterator)} <- [#{list_str}]"
   end
 end
