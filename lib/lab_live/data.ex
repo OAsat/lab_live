@@ -83,10 +83,19 @@ defmodule LabLive.Data do
 
   def render(storages) do
     content =
-      for {key, opts} <- storages do
-        label = Keyword.get(opts, :label, to_string(key))
-        "|#{key}|#{label}|#{get(key)}|"
-      end
+      storages
+      |> Enum.filter(fn {_, opts} -> Keyword.get(opts, :visible?, true) end)
+      |> Enum.map(fn {key, opts} ->
+        value = get(key)
+
+        value_str =
+          case value do
+            %struct{} -> struct.to_string(value)
+            _ -> to_string(value)
+          end
+
+        "|#{key}|#{Keyword.get(opts, :label, to_string(key))}|#{value_str}|"
+      end)
       |> Enum.join("\n")
 
     Kino.Markdown.new("|key|label|value|\n|--|--|--|\n" <> content)
