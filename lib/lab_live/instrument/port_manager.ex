@@ -9,8 +9,8 @@ defmodule LabLive.Instrument.PortManager do
       "1.0\\r\\n"
       iex> read(:inst1, :setp, channel: 2)
       %{kelvin: 1.0}
-      iex> read_joined(:inst1, sensor: [channel: "A"], heater: [channel: 2])
-      [sensor: %{ohm: 1200.0}, heater: %{percentage: 56.7}]
+      iex> read_joined(:inst1, sensor: [channel: "A"], sensor: [channel: "C"], heater: [channel: 2])
+      [sensor: %{ohm: 1200.0}, sensor: %{ohm: 0.23}, heater: %{percentage: 56.7}]
 
   Starting multiple instruments:
       iex> import LabLive.Instrument.PortManager

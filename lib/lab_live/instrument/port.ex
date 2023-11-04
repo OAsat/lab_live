@@ -8,13 +8,13 @@ defmodule LabLive.Instrument.Port do
   (For the definition of `Lakeshore350.dummy/0` and `Lakeshore350`, see `LabLive.Instrument.Model`.)
       iex> alias LabLive.Instrument.Port
       iex> map = Lakeshore350.dummy()
-      iex> {:ok, pid} = Port.start_link([name: :ls350, type: LabLive.Instrument.Impl.Dummy, map: map])
+      iex> {:ok, pid} = Port.start_link([name: :ls350, type: LabLive.Instrument.Impl.Dummy, map: map, sleep_after: 1])
       iex> Port.read(pid, "SETP? 2\\n")
       "1.0\\r\\n"
       iex> Port.read(pid, Lakeshore350, :ramp, channel: 2)
       %{onoff: 1, kpermin: 0.2}
-      iex> Port.read_joined(pid, Lakeshore350, sensor: [channel: "A"], heater: [channel: 2])
-      [sensor: %{ohm: 1200.0}, heater: %{percentage: 56.7}]
+      iex> Port.read_joined(pid, Lakeshore350, sensor: [channel: "A"], sensor: [channel: "C"], heater: [channel: 2])
+      [sensor: %{ohm: 1200.0}, sensor: %{ohm: 0.23}, heater: %{percentage: 56.7}]
   """
   use GenServer
   alias LabLive.Instrument.Model
