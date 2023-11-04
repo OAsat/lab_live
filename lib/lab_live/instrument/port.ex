@@ -8,7 +8,7 @@ defmodule LabLive.Instrument.Port do
   (For the definition of `Lakeshore350.dummy/0` and `Lakeshore350`, see `LabLive.Instrument.Model`.)
       iex> alias LabLive.Instrument.Port
       iex> map = Lakeshore350.dummy()
-      iex> {:ok, pid} = Port.start_link([name: :ls350, type: LabLive.Instrument.Impl.Dummy, map: map, sleep_after: 1])
+      iex> {:ok, pid} = Port.start_link([name: :ls350, type: LabLive.Instrument.Impl.Dummy, dummy: map, sleep_after: 1])
       iex> Port.read(pid, "SETP? 2\\n")
       "1.0\\r\\n"
       iex> Port.read(pid, Lakeshore350, :ramp, channel: 2)

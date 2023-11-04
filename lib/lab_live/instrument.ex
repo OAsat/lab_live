@@ -4,7 +4,7 @@ defmodule LabLive.Instrument do
 
       iex> alias LabLive.Instrument
       iex> alias LabLive.Instrument.Impl.Dummy
-      iex> {:ok, _pid} = Instrument.start(:inst1, model: Lakeshore350, type: Dummy, map: Lakeshore350.dummy())
+      iex> {:ok, _pid} = Instrument.start(:inst1, model: Lakeshore350, type: Dummy, dummy: Lakeshore350.dummy())
       iex> Instrument.read(:inst1, "SETP? 2\\n")
       "1.0\\r\\n"
       iex> Instrument.read(:inst1, :setp, channel: 2)
@@ -16,8 +16,8 @@ defmodule LabLive.Instrument do
       iex> alias LabLive.Instrument
       iex> alias LabLive.Instrument.Impl.Dummy
       iex> instruments = [
-      ...>     inst2: [type: Dummy, map: %{}],
-      ...>     inst3: [type: Dummy, map: %{}]
+      ...>     inst2: [type: Dummy, dummy: %{}],
+      ...>     inst3: [type: Dummy, dummy: %{}]
       ...>   ]
       iex> %{inst2: {:ok, _}, inst3: {:ok, _}} = Instrument.start(instruments)
   """

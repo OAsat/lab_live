@@ -7,8 +7,7 @@ defmodule LabLive.Instrument.Impl.Dummy do
 
   @impl Impl
   def init(opts) do
-    map = Keyword.get(opts, :map)
-    map
+    opts[:dummy]
   end
 
   @impl Impl
