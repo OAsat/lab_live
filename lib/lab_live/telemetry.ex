@@ -2,23 +2,20 @@ defmodule LabLive.Telemetry do
   require Logger
 
   def handle_instrument(
-        [:lab_live, :instrument, :read],
-        %{message: message, answer: answer},
-        %{name: name},
+        [:lab_live, :instrument, event],
+        %{query: query, answer: answer, state: %LabLive.Instrument.Port.State{opts: opts}},
+        _meta,
         _config
       ) do
-    Logger.info(
-      "read inst #{inspect(name)}. message:#{inspect(message)}, answer:#{inspect(answer)}"
-    )
-  end
+    name =
+      case opts[:key] do
+        nil -> opts[:name]
+        key -> key
+      end
 
-  def handle_instrument(
-        [:lab_live, :instrument, :write],
-        %{message: message, answer: nil},
-        %{name: name},
-        _config
-      ) do
-    Logger.info("write inst #{inspect(name)}. message:#{inspect(message)}")
+    Logger.info(
+      "Instrument|#{event}|#{inspect(name)}| query:#{inspect(query)}, answer:#{inspect(answer)}"
+    )
   end
 
   def update_widget(

@@ -8,7 +8,7 @@ defmodule LabLive.Instrument.Port do
   (For the definition of `Lakeshore350.dummy/0` and `Lakeshore350`, see `LabLive.Instrument.Model`.)
       iex> alias LabLive.Instrument.Port
       iex> map = Lakeshore350.dummy()
-      iex> {:ok, pid} = Port.start_link({:ls350, LabLive.Instrument.Impl.Dummy, map: map})
+      iex> {:ok, pid} = Port.start_link([name: :ls350, type: LabLive.Instrument.Impl.Dummy, map: map])
       iex> Port.read(pid, "SETP? 2\\n")
       "1.0\\r\\n"
       iex> Port.read(pid, Lakeshore350, :ramp, channel: 2)
@@ -19,56 +19,77 @@ defmodule LabLive.Instrument.Port do
   use GenServer
   alias LabLive.Instrument.Model
 
+  defmodule State do
+    @moduledoc false
+    defstruct [:resource, :impl, :opts]
+  end
+
+  @type impl() :: module()
+
+  @type state() :: %State{
+          resource: any(),
+          impl: impl(),
+          opts: opts()
+        }
+
+  @type opt() ::
+          {:name, GenServer.name()}
+          | {:key, atom()}
+          | {:sleep_after, non_neg_integer()}
+          | {:type, impl()}
+          | {atom(), any()}
+
+  @type opts() :: [opt()]
+
   @impl GenServer
-  def init({name, impl, opts}) do
-    state = impl.init(opts)
-    {:ok, {name, impl, state, opts}}
+  def init(opts) do
+    if not Keyword.has_key?(opts, :type) do
+      raise ":type option is required."
+    end
+
+    impl = opts[:type]
+    {:ok, %State{resource: impl.init(opts), impl: impl, opts: opts}}
   end
 
   @impl GenServer
-  def handle_call({:read, message}, from, stored = {name, impl, state, opts}) do
-    {answer, info} = impl.read(message, state)
+  def handle_call({:read, message}, from, %State{} = state) do
+    {answer, info} = state.impl.read(message, state.resource)
 
     GenServer.reply(from, answer)
-    impl.after_reply(info, state)
+    state.impl.after_reply(info, state.resource)
 
-    :telemetry.execute(
-      [:lab_live, :instrument, :read],
-      %{message: message, answer: answer},
-      %{process: self(), state: stored, name: name}
-    )
-
-    sleep_after = Keyword.get(opts, :sleep_after, 0)
-
-    if sleep_after > 0 do
-      Process.sleep(sleep_after)
-    end
-
-    {:noreply, stored}
+    execute_telemetry(:read, message, answer, state)
+    sleep(state.opts)
+    {:noreply, state}
   end
 
   @impl GenServer
-  def handle_cast({:write, message}, stored = {name, impl, state, opts}) do
-    :ok = impl.write(message, state)
+  def handle_cast({:write, message}, %State{} = state) do
+    :ok = state.impl.write(message, state.resource)
 
-    sleep_after = Keyword.get(opts, :sleep_after, 0)
-
-    :telemetry.execute(
-      [:lab_live, :instrument, :write],
-      %{message: message, answer: nil},
-      %{process: self(), state: stored, name: name}
-    )
-
-    if sleep_after > 0 do
-      Process.sleep(sleep_after)
-    end
-
-    {:noreply, stored}
+    execute_telemetry(:write, message, nil, state)
+    sleep(state.opts)
+    {:noreply, state}
   end
 
-  @spec start_link({atom(), module(), Keyword.t()}) :: GenServer.on_start()
-  def start_link({name, impl, opts}) do
-    GenServer.start_link(__MODULE__, {name, impl, opts}, name: name)
+  @spec start_link(opts()) :: GenServer.on_start()
+  def start_link(opts) do
+    name = opts[:name]
+    GenServer.start_link(__MODULE__, opts, name: name)
+  end
+
+  defp execute_telemetry(event, query, answer, state) do
+    :telemetry.execute(
+      [:lab_live, :instrument, event],
+      %{query: query, answer: answer, state: state}
+    )
+  end
+
+  defp sleep(opts) do
+    with sleep_time <- Keyword.get(opts, :sleep_after, 0),
+         true <- sleep_time > 0 do
+      Process.sleep(sleep_time)
+    end
   end
 
   def read(pid, message) when is_binary(message) do

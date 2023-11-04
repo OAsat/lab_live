@@ -4,7 +4,7 @@ defmodule LabLive.Instrument.PortManager do
 
       iex> import LabLive.Instrument.PortManager
       iex> alias LabLive.Instrument.Impl.Dummy
-      iex> {:ok, _pid} = start_instrument(:inst1, Lakeshore350, {Dummy, map: Lakeshore350.dummy()})
+      iex> {:ok, _pid} = start_instrument(:inst1, [model: Lakeshore350, type: Dummy, map: Lakeshore350.dummy()])
       iex> read(:inst1, "SETP? 2\\n")
       "1.0\\r\\n"
       iex> read(:inst1, :setp, channel: 2)
@@ -15,17 +15,26 @@ defmodule LabLive.Instrument.PortManager do
   Starting multiple instruments:
       iex> import LabLive.Instrument.PortManager
       iex> alias LabLive.Instrument.Impl.Dummy
-      iex> instruments = %{
-      ...>     inst2: {nil, {Dummy, map: %{}}},
-      ...>     inst3: {nil, {Dummy, map: %{}}}
-      ...>   }
-      iex> %{inst2: {:ok, _}, inst3: {:ok, _}} = start_instruments(instruments)
+      iex> instruments = [
+      ...>     inst2: [type: Dummy, map: %{}],
+      ...>     inst3: [type: Dummy, map: %{}]
+      ...>   ]
+      iex> %{inst2: {:ok, _}, inst3: {:ok, _}} = start_instrument(instruments)
   """
   alias LabLive.Instrument.Port
   use Supervisor
 
   @registry LabLive.Instrument.Port.Registry
   @supervisor LabLive.Instrument.Port.Supervisor
+
+  @type model() :: module()
+
+  @type opt() ::
+          {:model, model()}
+          | {:type, LabLive.Instrument.Port.impl()}
+          | LabLive.Instrument.Port.opt()
+
+  @type opts() :: [opt()]
 
   @impl Supervisor
   def init(nil) do
@@ -41,15 +50,14 @@ defmodule LabLive.Instrument.PortManager do
     Supervisor.start_link(__MODULE__, nil, name: __MODULE__)
   end
 
-  def start_instrument(key, model, {inst, opts}) do
-    name = via_name(key, model)
-    DynamicSupervisor.start_child(@supervisor, {Port, {name, inst, opts}})
+  def start_instrument(key, opts) do
+    name = via_name(key, opts[:model])
+    DynamicSupervisor.start_child(@supervisor, {Port, [{:name, name}, {:key, key} | opts]})
   end
 
-  def start_instruments(map) when is_map(map) do
-    for {key, inst_info} <- map do
-      {model, {inst, opts}} = inst_info
-      {key, start_instrument(key, model, {inst, opts})}
+  def start_instrument(instruments) when is_map(instruments) or is_list(instruments) do
+    for {key, opts} <- instruments do
+      {key, start_instrument(key, opts)}
     end
     |> Enum.into(%{})
   end
