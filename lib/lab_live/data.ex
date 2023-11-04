@@ -25,7 +25,7 @@ defmodule LabLive.Data do
   alias LabLive.Data.StorageManager
   alias LabLive.Data.Storage
 
-  def start(storages) when is_list(storages) do
+  def start(storages) when is_list(storages) or is_map(storages) do
     StorageManager.start_storage(storages)
   end
 

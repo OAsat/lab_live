@@ -92,29 +92,35 @@ defmodule LabLive.Instrument.Port do
     end
   end
 
+  @spec read(pid(), String.t()) :: String.t()
   def read(pid, message) when is_binary(message) do
     GenServer.call(pid, {:read, message})
   end
 
+  @spec read(pid(), Model.t(), atom(), Keyword.t()) :: map()
   def read(pid, model, key, opts \\ []) when is_atom(key) and is_list(opts) do
     {query, parser} = Model.get_reader(model, key, opts)
     read(pid, query) |> parser.()
   end
 
+  @spec read_joined(pid(), Model.t(), Keyword.t()) :: Keyword.t()
   def read_joined(pid, model, keys_and_opts) when is_list(keys_and_opts) do
     {query, parser} = Model.get_joined_reader(model, keys_and_opts)
     read(pid, query) |> parser.()
   end
 
+  @spec write(pid(), String.t()) :: :ok
   def write(pid, message) when is_binary(message) do
     GenServer.cast(pid, {:write, message})
   end
 
+  @spec write(pid(), Model.t(), atom(), Keyword.t()) :: :ok
   def write(pid, model, key, opts \\ []) do
     query = Model.get_writer(model, key, opts)
     write(pid, query)
   end
 
+  @spec write_joined(pid(), Model.t(), Keyword.t()) :: :ok
   def write_joined(pid, model, keys_and_opts) when is_list(keys_and_opts) do
     query = Model.get_joined_writer(model, keys_and_opts)
     write(pid, query)
