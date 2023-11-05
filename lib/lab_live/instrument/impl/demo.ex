@@ -1,6 +1,6 @@
-defmodule LabLive.Instrument.Impl.Dummy do
+defmodule LabLive.Instrument.Impl.Demo do
   @moduledoc """
-  Dummy instrument.
+  Demo instrument.
   """
   alias LabLive.Instrument.Impl
   @behaviour Impl
@@ -25,11 +25,7 @@ defmodule LabLive.Instrument.Impl.Dummy do
   end
 
   @impl Impl
-  def write(message, map) do
-    if not Map.has_key?(map, message) do
-      raise "Write message #{message} not expected."
-    else
-      :ok
-    end
+  def write(_message, _map) do
+    :ok
   end
 end

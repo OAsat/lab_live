@@ -5,6 +5,7 @@ defmodule LabLive.Data.Csv do
   defstruct [:path, :column_labels, :comment_labels]
 
   import LabLive.Data
+  require Logger
 
   @type column_labels() :: [{atom(), String.t()}]
   @type comment_labels() :: [{atom(), String.t()}]
@@ -61,6 +62,7 @@ defmodule LabLive.Data.Csv do
 
   def init_file(filepath, header) do
     File.open(filepath, [:exclusive], fn file -> IO.binwrite(file, header) end)
+    Logger.info("Initialized csv file: #{filepath}")
   end
 
   @doc """
@@ -83,7 +85,7 @@ defmodule LabLive.Data.Csv do
   end
 
   def append(%__MODULE__{} = csv, values) do
-    data_str = data_to_string(values, csv.column_labels)
+    data_str = data_to_string(csv.column_labels, values)
     append_to_file(csv.path, data_str)
   end
 
@@ -97,7 +99,7 @@ defmodule LabLive.Data.Csv do
   """
   def data_to_string(labels, values, joiner \\ ",") do
     for key <- Keyword.keys(labels) do
-      to_string(values[key])
+      Kernel.to_string(values[key])
     end
     |> Enum.join(joiner)
   end
@@ -106,5 +108,9 @@ defmodule LabLive.Data.Csv do
     File.open(filepath, [:append], fn file ->
       IO.binwrite(file, content <> newline)
     end)
+  end
+
+  def to_string(%__MODULE__{} = csv) do
+    "#{csv.path}"
   end
 end

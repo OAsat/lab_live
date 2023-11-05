@@ -50,6 +50,13 @@ defmodule LabLive.Execution.Worker do
   end
 
   @impl GenServer
+  def handle_cast(:reset, state) do
+    new_state = %State{state | status: :start, idle?: true}
+    telemetry_update_state(new_state)
+    {:noreply, new_state}
+  end
+
+  @impl GenServer
   def handle_info(:run, state) do
     if state.idle? do
       {:noreply, state}
@@ -77,6 +84,10 @@ defmodule LabLive.Execution.Worker do
   @spec pause() :: :ok
   def pause() do
     GenServer.cast(__MODULE__, :pause)
+  end
+
+  def reset() do
+    GenServer.cast(__MODULE__, :reset)
   end
 
   @spec get_state() :: state()

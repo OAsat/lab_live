@@ -20,10 +20,17 @@ defmodule LabLive.Data.Iterator do
       iex> Iterator.value(iter)
       7
       iex> Iterator.finish?(iter)
+      false
+      iex> iter = Iterator.step(iter)
+      iex> Iterator.value(iter)
+      :finished
+      iex> Iterator.finish?(iter)
       true
       iex> iter = Iterator.step(iter)
       iex> Iterator.value(iter)
-      7
+      :finished
+      iex> Iterator.finish?(iter)
+      true
       iex> iter = Iterator.reset(iter)
       iex> Iterator.value(iter)
       :not_started
@@ -39,7 +46,7 @@ defmodule LabLive.Data.Iterator do
   alias LabLive.Data
 
   @type t() :: %__MODULE__{
-          count: :not_started | non_neg_integer(),
+          count: :not_started | non_neg_integer() | :finished,
           list: list()
         }
 
@@ -54,6 +61,7 @@ defmodule LabLive.Data.Iterator do
   def value(%__MODULE__{} = iterator) do
     case iterator.count do
       :not_started -> :not_started
+      :finished -> :finished
       count -> iterator.list |> Enum.at(count)
     end
   end
@@ -63,13 +71,16 @@ defmodule LabLive.Data.Iterator do
   end
 
   def step(%__MODULE__{} = iterator) do
-    if finish?(iterator) do
-      iterator
-    else
-      case iterator.count do
-        :not_started -> %__MODULE__{iterator | count: 0}
-        count -> %__MODULE__{iterator | count: count + 1}
-      end
+    case iterator.count do
+      :not_started ->
+        %__MODULE__{iterator | count: 0}
+
+      :finished ->
+        iterator
+
+      count ->
+        next = if count + 1 >= length(iterator.list), do: :finished, else: count + 1
+        %__MODULE__{iterator | count: next}
     end
   end
 
@@ -86,10 +97,7 @@ defmodule LabLive.Data.Iterator do
   end
 
   def finish?(%__MODULE__{} = iterator) do
-    case iterator.count do
-      :not_started -> false
-      count -> count + 1 >= length(iterator.list)
-    end
+    iterator.count == :finished
   end
 
   @doc """

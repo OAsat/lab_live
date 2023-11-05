@@ -17,13 +17,15 @@ defmodule LabLive.Execution do
   def buttons() do
     start = Kino.Control.button("Start")
     pause = Kino.Control.button("Pause")
-    Kino.Layout.grid([start, pause]) |> Kino.render()
+    reset = Kino.Control.button("Reset")
+    Kino.Layout.grid([start, pause, reset]) |> Kino.render()
 
-    stream = Kino.Control.tagged_stream(start: start, pause: pause)
+    stream = Kino.Control.tagged_stream(start: start, pause: pause, reset: reset)
 
     Kino.listen(stream, fn
       {:start, _event} -> Worker.start_run()
       {:pause, _event} -> Worker.pause()
+      {:reset, _event} -> Worker.reset()
     end)
   end
 end

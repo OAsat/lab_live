@@ -12,6 +12,10 @@ defmodule LabLive.Data.Timer do
     %__MODULE__{threshold: threshold, start_time: Timex.now()}
   end
 
+  def elapsed?(key) when is_atom(key) do
+    Data.get(key) |> elapsed?()
+  end
+
   @doc """
   Check if the timer has elapsed.
       iex> timer = LabLive.Data.Timer.new(0)
