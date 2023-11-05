@@ -1,6 +1,6 @@
 # LabLive
 
-**TODO: Add description**
+Lab measurements in Elixir/Livebook.
 
 ## Installation
 
