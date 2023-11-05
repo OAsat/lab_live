@@ -7,13 +7,14 @@ defmodule LabLive.Execution.Worker do
 
   defmodule State do
     @moduledoc false
-    defstruct diagram: %{}, status: :start, idle?: true
+    defstruct diagram: %{}, status: :start, idle?: true, frame: nil
   end
 
   @type state :: %State{
           diagram: Diagram.diagram(),
           status: Diagram.stage(),
-          idle?: boolean()
+          idle?: boolean(),
+          frame: Kino.Frame.t()
         }
 
   def start_link(_opts) do
@@ -33,8 +34,8 @@ defmodule LabLive.Execution.Worker do
 
   @impl GenServer
   def handle_cast({:set_diagram, diagram}, _state) do
-    new_state = %State{diagram: diagram}
-    telemetry_update_state(new_state)
+    new_state = %State{diagram: diagram, frame: Kino.Frame.new()}
+    on_update_state(new_state)
     {:noreply, new_state}
   end
 
@@ -52,7 +53,7 @@ defmodule LabLive.Execution.Worker do
   @impl GenServer
   def handle_cast(:reset, state) do
     new_state = %State{state | status: :start, idle?: true}
-    telemetry_update_state(new_state)
+    on_update_state(new_state)
     {:noreply, new_state}
   end
 
@@ -61,8 +62,9 @@ defmodule LabLive.Execution.Worker do
     if state.idle? do
       {:noreply, state}
     else
-      telemetry_update_state(state)
-      {:noreply, run_step(state)}
+      new = run_step(state)
+      on_update_state(new)
+      {:noreply, new}
     end
   end
 
@@ -99,8 +101,11 @@ defmodule LabLive.Execution.Worker do
     Process.send_after(self(), :run, interval)
   end
 
-  defp telemetry_update_state(state) do
-    :telemetry.execute([:lab_live, :execution, :update_state], %{state: state})
+  defp on_update_state(%State{} = state) do
+    Kino.Frame.render(
+      state.frame,
+      Diagram.to_mermaid_markdown(state.diagram, running: state.status)
+    )
   end
 
   defp run_step(%State{} = state) do

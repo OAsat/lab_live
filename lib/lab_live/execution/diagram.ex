@@ -34,9 +34,9 @@ defmodule LabLive.Execution.Diagram do
 
     tail =
       for {key, value} <- diagram do
-        key_str = to_text(nil, key)
+        key_str = to_text(running, nil, key)
         running? = if key == running, do: ":::running", else: ""
-        "#{key_str}#{running?} --> #{to_text(key_str, value)}"
+        "#{key_str}#{running?} --> #{to_text(running, key_str, value)}"
       end
 
     Enum.join([head | tail], "\n")
@@ -54,23 +54,24 @@ defmodule LabLive.Execution.Diagram do
     |> Kino.Markdown.new()
   end
 
-  defp to_text(_prefix, {module, function})
+  defp to_text(_running, _prefix, {module, function})
        when is_atom(module) and is_atom(function) do
     mod_str = to_string(module) |> String.replace("Elixir.", "")
     "#{mod_str}.#{function}"
   end
 
-  defp to_text(_prefix, atom) when is_atom(atom) do
-    "#{atom}"
+  defp to_text(running, _prefix, atom) when is_atom(atom) do
+    finish? = if atom == running and running == :finish, do: ":::running", else: ""
+    "#{atom}#{finish?}"
   end
 
-  defp to_text(prefix, f: function, str: f_label, branch: branch)
+  defp to_text(running, prefix, f: function, str: f_label, branch: branch)
        when is_function(function, 0) do
     head = "#{prefix}_f{{\"#{f_label}\"}}:::function"
 
     tail =
       for {key, value} <- branch do
-        "#{prefix}_f --> |#{key}| #{to_text("", value)}"
+        "#{prefix}_f --> |#{key}| #{to_text(running, "", value)}"
       end
 
     [head | tail] |> Enum.join("\n")

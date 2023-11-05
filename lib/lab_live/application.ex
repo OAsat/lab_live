@@ -8,8 +8,7 @@ defmodule LabLive.Application do
     children = [
       LabLive.Instrument.PortManager,
       LabLive.Data.StorageManager,
-      LabLive.Execution.Supervisor,
-      LabLive.Widgets
+      LabLive.Execution.Supervisor
     ]
 
     :ok =
@@ -20,14 +19,6 @@ defmodule LabLive.Application do
           [:lab_live, :instrument, :write]
         ],
         &LabLive.Telemetry.handle_instrument/4,
-        nil
-      )
-
-    :ok =
-      :telemetry.attach(
-        "lab_live execution handler",
-        [:lab_live, :execution, :update_state],
-        &LabLive.Telemetry.update_widget/4,
         nil
       )
 

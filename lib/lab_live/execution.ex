@@ -28,4 +28,8 @@ defmodule LabLive.Execution do
       {:reset, _event} -> Worker.reset()
     end)
   end
+
+  def monitor() do
+    Worker.get_state().frame
+  end
 end
