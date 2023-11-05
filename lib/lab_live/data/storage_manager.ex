@@ -1,26 +1,6 @@
 defmodule LabLive.Data.StorageManager do
   @moduledoc """
   Supervisor to manage properties by keys.
-
-      iex> import LabLive.Data.StorageManager
-      iex> {:ok, _pid} = start_property(:a)
-      iex> 10 |> update(:a)
-      :ok
-      iex> get(:a)
-      10
-
-  Starting multiple properties:
-      iex> import LabLive.Data.StorageManager
-      iex> props = [b: [], c: [label: "label of c"]]
-      iex> [b: {:ok, _pid_b}, c: {:ok, _pid_c}] = start_props(props)
-      iex> opts(:c)
-      [label: "label of c"]
-      iex> labels([:b, :c])
-      [b: "b", c: "label of c"]
-      iex> update_many(%{b: 20, c: 30})
-      %{b: :ok, c: :ok}
-      iex> get_many([:b, :c])
-      [b: 20, c: 30]
   """
   use Supervisor
   alias LabLive.Data.Storage
@@ -43,71 +23,24 @@ defmodule LabLive.Data.StorageManager do
     Supervisor.start_link(__MODULE__, :ok, name: __MODULE__)
   end
 
-  @spec start_property(atom(), Keyword.t()) :: DynamicSupervisor.on_start_child()
-  def start_property(name, opts \\ []) do
-    via = {:via, Registry, {@registry, name, opts}}
-    new_opts = Keyword.put(opts, :name, via)
-    DynamicSupervisor.start_child(@supervisor, {Storage, new_opts})
-  end
-
-  @spec start_props(map() | Keyword.t()) :: Keyword.t()
-  def start_props(props) do
-    for {name, opts} <- props do
-      {name, start_property(name, opts)}
+  @spec start_storage(map() | Keyword.t()) :: Keyword.t()
+  def start_storage(storages) when is_list(storages) or is_map(storages) do
+    for {name, opts} <- storages do
+      {name, start_storage(name, opts)}
     end
   end
 
-  def lookup(key) do
+  @spec start_storage(atom(), Keyword.t()) :: DynamicSupervisor.on_start_child()
+  def start_storage(name, opts \\ []) when is_atom(name) do
+    via = {:via, Registry, {@registry, name, opts}}
+    DynamicSupervisor.start_child(@supervisor, {Storage, [{:name, via} | opts]})
+  end
+
+  def info(key) do
     case Registry.lookup(@registry, key) do
-      [] -> raise "Variable #{key} not found."
+      [] -> raise "Storage #{key} not found."
       [{pid, opts}] -> {pid, opts}
     end
-  end
-
-  def pid(key) do
-    lookup(key) |> elem(0)
-  end
-
-  def opts(key) do
-    lookup(key) |> elem(1)
-  end
-
-  @spec update(any(), atom()) :: any()
-  def update(value, key) do
-    pid(key) |> Storage.update(value)
-  end
-
-  def update_many(keys_and_values) do
-    for {key, value} <- keys_and_values do
-      {key, update(value, key)}
-    end
-    |> Enum.into(%{})
-  end
-
-  @spec get(atom()) :: any()
-  def get(key) do
-    pid(key) |> Storage.get()
-  end
-
-  def stats(key) do
-    pid(key) |> Storage.stats()
-  end
-
-  def get_many(keys) do
-    for key <- keys do
-      {key, get(key)}
-    end
-  end
-
-  def label(key) do
-    case Keyword.get(opts(key), :label, nil) do
-      nil -> to_string(key)
-      label -> label
-    end
-  end
-
-  def labels(keys) do
-    Enum.map(keys, fn key -> {key, label(key)} end)
   end
 
   def keys_and_pids() do

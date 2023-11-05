@@ -20,8 +20,10 @@ defmodule Lakeshore350 do
       "RAMP? 2\n" => "1,0.2\n",
       "KRDG? A\n" => "50.0\r\n",
       "SRDG? A\n" => "1000.0\r\n",
+      "SRDG? C\n" => "0.23\r\n",
       "HTR? 2\n" => "11.1\r\n",
       "SRDG? A;HTR? 2\n" => "1200.0;56.7\r\n",
+      "SRDG? A;SRDG? C;HTR? 2\n" => "1200.0;0.23;56.7\r\n",
       "SETP 2,1.0\n" => nil,
       "RANGE 2,2\n" => nil,
       "RAMP 2,1,0.2\n" => nil

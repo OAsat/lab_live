@@ -9,6 +9,8 @@ defmodule LabLive.Instrument.Model do
   """
   alias LabLive.Instrument.Model.Format
 
+  @type t() :: module()
+
   @callback read_termination() :: String.t()
   @callback write_termination() :: String.t()
   @callback joiner() :: String.t()
