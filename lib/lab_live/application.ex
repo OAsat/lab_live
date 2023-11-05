@@ -8,7 +8,8 @@ defmodule LabLive.Application do
     children = [
       LabLive.Instrument.PortManager,
       LabLive.Data.StorageManager,
-      LabLive.Execution.Supervisor
+      LabLive.Execution.Supervisor,
+      LabLive.Plot
     ]
 
     :ok =
