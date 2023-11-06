@@ -35,6 +35,15 @@ defmodule LabLive.Plot do
   end
 
   @impl GenServer
+  def handle_cast(:clear, %__MODULE__{widgets: widgets} = state) do
+    for {_, widget} <- widgets do
+      :ok = Kino.VegaLite.clear(widget)
+    end
+
+    {:noreply, state}
+  end
+
+  @impl GenServer
   def handle_call(:render, _from, state) do
     {:reply, state.frame, state}
   end
@@ -57,5 +66,9 @@ defmodule LabLive.Plot do
 
   def render() do
     GenServer.call(__MODULE__, :render)
+  end
+
+  def clear() do
+    GenServer.cast(__MODULE__, :clear)
   end
 end
