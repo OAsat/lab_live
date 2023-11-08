@@ -52,6 +52,11 @@ defmodule LabLive.Instrument.Port do
   end
 
   @impl GenServer
+  def terminate(_reason, %State{opts: opts}) do
+    sleep(opts)
+  end
+
+  @impl GenServer
   def handle_call({:read, message}, from, %State{} = state) do
     {answer, info} = state.impl.read(message, state.resource)
 

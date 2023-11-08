@@ -19,7 +19,10 @@ defmodule LabLive.Instrument.PortManager do
   @impl Supervisor
   def init(nil) do
     children = [
-      {DynamicSupervisor, name: @supervisor, strategy: :one_for_one, max_restarts: 50},
+      {DynamicSupervisor,
+       name: @supervisor,
+       strategy: :one_for_one,
+       max_restarts: Application.get_env(:lab_live, :max_restarts, 5)},
       {Registry, keys: :unique, name: @registry}
     ]
 
