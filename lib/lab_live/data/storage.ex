@@ -53,6 +53,10 @@ defmodule LabLive.Data.Storage do
   @type opts() :: [opt()]
 
   def start_link(opts \\ []) do
+    Agent.start_link(fn -> init_value(opts) end, name: opts[:name])
+  end
+
+  defp init_value(opts) do
     stats =
       case {opts[:stats], opts[:init]} do
         {nil, _} -> nil
@@ -60,10 +64,7 @@ defmodule LabLive.Data.Storage do
         {max_size, init} -> Stats.new([init], max_size)
       end
 
-    Agent.start_link(
-      fn -> %__MODULE__{value: opts[:init], stats: stats, opts: opts} end,
-      name: opts[:name]
-    )
+    %__MODULE__{value: opts[:init], stats: stats, opts: opts}
   end
 
   @spec get(GenServer.server()) :: any()
@@ -89,5 +90,21 @@ defmodule LabLive.Data.Storage do
   @spec get_state(GenServer.server()) :: t()
   def get_state(server) do
     Agent.get(server, fn state -> state end)
+  end
+
+  @doc """
+  Reset with options.
+
+      iex> alias LabLive.Data.Storage
+      iex> {:ok, pid} = Storage.start_link(init: 10)
+      iex> Storage.get(pid)
+      10
+      iex> Storage.reset(pid, [init: 20])
+      iex> Storage.get(pid)
+      20
+  """
+  @spec reset(GenServer.server(), opts()) :: :ok
+  def reset(server, opts) do
+    Agent.update(server, fn _ -> init_value(opts) end)
   end
 end

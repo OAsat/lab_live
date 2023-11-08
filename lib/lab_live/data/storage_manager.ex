@@ -33,7 +33,18 @@ defmodule LabLive.Data.StorageManager do
   @spec start_storage(atom(), Keyword.t()) :: DynamicSupervisor.on_start_child()
   def start_storage(name, opts \\ []) when is_atom(name) do
     via = {:via, Registry, {@registry, name, opts}}
-    DynamicSupervisor.start_child(@supervisor, {Storage, [{:name, via} | opts]})
+
+    case DynamicSupervisor.start_child(@supervisor, {Storage, [{:name, via} | opts]}) do
+      {:ok, pid} ->
+        {:ok, pid}
+
+      {:error, {:already_started, pid}} ->
+        :ok = Storage.reset(pid, opts)
+        {:reset, pid}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
   def info(key) do
