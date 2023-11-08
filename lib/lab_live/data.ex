@@ -3,11 +3,12 @@ defmodule LabLive.Data do
   Functions to handle data storages.
 
       iex> alias LabLive.Data
-      iex> {:ok, _pid} = Data.start(:a)
+      iex> {:ok, pid} = Data.start(:a)
       iex> 10 |> Data.update(:a)
       :ok
       iex> Data.get(:a)
       10
+      iex> {:reset, ^pid} = Data.start(:a)
 
   Starting multiple properties:
       iex> alias LabLive.Data

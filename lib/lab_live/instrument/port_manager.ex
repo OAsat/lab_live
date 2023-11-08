@@ -36,7 +36,18 @@ defmodule LabLive.Instrument.PortManager do
   @spec start_instrument(key :: atom(), opts :: opts()) :: DynamicSupervisor.on_start_child()
   def start_instrument(key, opts) do
     name = via_name(key, opts[:model])
-    DynamicSupervisor.start_child(@supervisor, {Port, [{:name, name}, {:key, key} | opts]})
+
+    case DynamicSupervisor.start_child(@supervisor, {Port, [{:name, name}, {:key, key} | opts]}) do
+      {:ok, pid} ->
+        {:ok, pid}
+
+      {:error, {:already_started, pid}} ->
+        Port.reset(pid, opts)
+        {:reset, pid}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
   @spec start_instrument(instruments :: map() | Keyword.t()) :: map()
