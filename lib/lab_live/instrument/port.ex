@@ -43,16 +43,21 @@ defmodule LabLive.Instrument.Port do
 
   @impl GenServer
   def init(opts) do
+    {:ok, init_state(opts)}
+  end
+
+  defp init_state(opts) do
     if not Keyword.has_key?(opts, :type) do
       raise ":type option is required."
     end
 
     impl = opts[:type]
-    {:ok, %State{resource: impl.init(opts), impl: impl, opts: opts}}
+    %State{resource: impl.init(opts), impl: impl, opts: opts}
   end
 
   @impl GenServer
-  def terminate(_reason, %State{opts: opts}) do
+  def terminate(reason, %State{opts: opts, impl: impl, resource: resource}) do
+    :ok = impl.terminate(reason, resource)
     sleep(opts)
   end
 
@@ -61,7 +66,7 @@ defmodule LabLive.Instrument.Port do
     {answer, info} = state.impl.read(message, state.resource)
 
     GenServer.reply(from, answer)
-    state.impl.after_reply(info, state.resource)
+    :ok = state.impl.after_reply(info, state.resource)
 
     execute_telemetry(:read, message, answer, state)
     sleep(state.opts)
@@ -75,6 +80,12 @@ defmodule LabLive.Instrument.Port do
     execute_telemetry(:write, message, nil, state)
     sleep(state.opts)
     {:noreply, state}
+  end
+
+  @impl GenServer
+  def handle_cast({:reset, opts}, %State{impl: impl, resource: resource}) do
+    :ok = impl.terminate(:normal, resource)
+    {:noreply, init_state(opts)}
   end
 
   @spec start_link(opts()) :: GenServer.on_start()
@@ -95,6 +106,11 @@ defmodule LabLive.Instrument.Port do
          true <- sleep_time > 0 do
       Process.sleep(sleep_time)
     end
+  end
+
+  @spec reset(pid(), opts()) :: :ok
+  def reset(pid, opts) do
+    GenServer.cast(pid, {:reset, opts})
   end
 
   @spec read(pid(), String.t()) :: String.t()
