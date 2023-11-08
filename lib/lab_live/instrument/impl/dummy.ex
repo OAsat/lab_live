@@ -21,7 +21,7 @@ defmodule LabLive.Instrument.Impl.Dummy do
 
   @impl Impl
   def after_reply(nil, _map) do
-    nil
+    :ok
   end
 
   @impl Impl
@@ -31,5 +31,10 @@ defmodule LabLive.Instrument.Impl.Dummy do
     else
       :ok
     end
+  end
+
+  @impl Impl
+  def terminate(_reason, _map) do
+    :ok
   end
 end

@@ -28,4 +28,9 @@ defmodule LabLive.Instrument.Impl.Demo do
   def write(_message, _map) do
     :ok
   end
+
+  @impl Impl
+  def terminate(_reason, _map) do
+    nil
+  end
 end

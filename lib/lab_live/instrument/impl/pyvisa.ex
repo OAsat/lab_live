@@ -23,13 +23,18 @@ defmodule LabLive.Instrument.Impl.Pyvisa do
 
   @impl Impl
   def after_reply(nil, _state) do
-    nil
+    :ok
   end
 
   @impl Impl
   def write(message, {python_pid, address}) do
     :python.call(python_pid, :communicate, :write, [address, message])
     :ok
+  end
+
+  @impl Impl
+  def terminate(_reason, {python_pid, _address}) do
+    :python.stop(python_pid)
   end
 
   defp start_python(python_exec) do

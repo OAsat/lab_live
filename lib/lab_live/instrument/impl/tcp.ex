@@ -30,6 +30,11 @@ defmodule LabLive.Instrument.Impl.Tcp do
     :ok
   end
 
+  @impl Impl
+  def terminate(_reason, _resource) do
+    :ok
+  end
+
   defp connect_and_send(message, address, port) do
     {:ok, socket} = :gen_tcp.connect(address, port, @tcp_opts, 1000)
     :ok = :gen_tcp.send(socket, message)
