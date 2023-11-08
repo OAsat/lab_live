@@ -9,7 +9,7 @@ defmodule LabLive.Execution do
     end
   end
 
-  @spec set(diagram :: Diagram.diagram()) :: :ok
+  @spec set(diagram :: LabLive.Execution.Diagram.diagram()) :: :ok
   def set(diagram) do
     Worker.set_diagram(diagram)
   end
