@@ -8,7 +8,10 @@ defmodule LabLive.Execution.Supervisor do
       LabLive.Execution.Worker
     ]
 
-    Supervisor.init(children, strategy: :one_for_one, max_restarts: 50)
+    Supervisor.init(children,
+      strategy: :one_for_one,
+      max_restarts: Application.get_env(:lab_live, :max_restarts, 5)
+    )
   end
 
   def start_link(_init_arg) do
