@@ -4,7 +4,7 @@ defmodule LabLive.MixProject do
   def project do
     [
       app: :lab_live,
-      version: "0.1.1",
+      version: "0.1.2",
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       deps: deps()
@@ -27,6 +27,7 @@ defmodule LabLive.MixProject do
       {:kino_vega_lite, "~> 0.1.10"},
       {:logger_file_backend, "~> 0.0.13"},
       {:ex_doc, "~> 0.30.8", only: :dev, runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:stream_data, "~> 0.5", only: :test}
     ]
   end

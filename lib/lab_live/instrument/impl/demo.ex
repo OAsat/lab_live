@@ -21,11 +21,16 @@ defmodule LabLive.Instrument.Impl.Demo do
 
   @impl Impl
   def after_reply(nil, _map) do
-    nil
+    :ok
   end
 
   @impl Impl
   def write(_message, _map) do
+    :ok
+  end
+
+  @impl Impl
+  def terminate(_reason, _map) do
     :ok
   end
 end
