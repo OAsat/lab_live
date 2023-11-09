@@ -33,9 +33,9 @@ defmodule LabLive.Execution do
     Kino.animate(
       interval,
       fn _ ->
-        Worker.get_state().status
-        |> inspect()
-        |> Kino.Text.new()
+        state = LabLive.Execution.Stash.get()
+        running? = if state.idle?, do: "stopped", else: "running"
+        Kino.Text.new("[#{running?}] #{inspect(state.status)}", terminal: true)
       end
     )
   end

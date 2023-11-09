@@ -28,36 +28,30 @@ defmodule LabLive.Execution.Worker do
 
   @impl GenServer
   def terminate(_reason, state) do
-    LabLive.Execution.Stash.update(state)
+    update_stash(state)
   end
 
   @impl GenServer
   def handle_cast({:set_diagram, diagram}, _state) do
     new_state = %State{diagram: diagram}
-    on_update_state(new_state)
-    {:noreply, new_state}
+    {:noreply, new_state |> on_update()}
   end
 
   @impl GenServer
   def handle_cast(:start, state) do
-    update_stash(state)
     send_after(0)
 
-    {:noreply, %{state | idle?: false}}
+    {:noreply, %{state | idle?: false} |> on_update()}
   end
 
   @impl GenServer
   def handle_cast(:pause, state) do
-    {:noreply, %{state | idle?: true}}
+    {:noreply, %{state | idle?: true} |> on_update()}
   end
 
   @impl GenServer
   def handle_cast(:reset, state) do
-    update_stash(state)
-
-    new_state = %State{state | status: :start, idle?: true}
-    on_update_state(new_state)
-    {:noreply, new_state}
+    {:noreply, %State{state | status: :start, idle?: true} |> on_update()}
   end
 
   @impl GenServer
@@ -67,9 +61,7 @@ defmodule LabLive.Execution.Worker do
     if state.idle? do
       {:noreply, state}
     else
-      new = run_step(state)
-      on_update_state(new)
-      {:noreply, new}
+      {:noreply, state |> run_step() |> on_update()}
     end
   end
 
@@ -93,6 +85,7 @@ defmodule LabLive.Execution.Worker do
     GenServer.cast(__MODULE__, :pause)
   end
 
+  @spec reset() :: :ok
   def reset() do
     GenServer.cast(__MODULE__, :reset)
   end
@@ -110,11 +103,15 @@ defmodule LabLive.Execution.Worker do
     LabLive.Execution.Stash.update(state)
   end
 
-  defp on_update_state(%State{} = state) do
+  defp on_update(%State{} = state) do
+    update_stash(state)
+
     :telemetry.execute(
       [:lab_live, :execution, :update_state],
       %{state: state}
     )
+
+    state
   end
 
   defp run_step(%State{} = state) do
