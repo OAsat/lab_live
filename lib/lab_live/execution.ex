@@ -29,7 +29,19 @@ defmodule LabLive.Execution do
     end)
   end
 
-  def monitor() do
-    Worker.get_state().frame
+  def monitor(interval \\ 100) do
+    Kino.animate(
+      interval,
+      fn _ ->
+        state = LabLive.Execution.Stash.get()
+        running? = if state.idle?, do: "stopped", else: "running"
+        Kino.Text.new("[#{running?}] #{inspect(state.status)}", terminal: true)
+      end
+    )
+  end
+
+  @spec render(LabLive.Execution.Diagram.diagram()) :: Kino.Markdown.t()
+  def render(diagram) do
+    LabLive.Execution.Diagram.to_mermaid_markdown(diagram) |> Kino.render()
   end
 end
