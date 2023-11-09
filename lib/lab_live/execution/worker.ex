@@ -40,7 +40,9 @@ defmodule LabLive.Execution.Worker do
 
   @impl GenServer
   def handle_cast(:start, state) do
+    update_stash(state)
     send_after(0)
+
     {:noreply, %{state | idle?: false}}
   end
 
@@ -51,6 +53,8 @@ defmodule LabLive.Execution.Worker do
 
   @impl GenServer
   def handle_cast(:reset, state) do
+    update_stash(state)
+
     new_state = %State{state | status: :start, idle?: true}
     on_update_state(new_state)
     {:noreply, new_state}
@@ -58,6 +62,8 @@ defmodule LabLive.Execution.Worker do
 
   @impl GenServer
   def handle_info(:run, state) do
+    update_stash(state)
+
     if state.idle? do
       {:noreply, state}
     else
@@ -98,6 +104,10 @@ defmodule LabLive.Execution.Worker do
 
   defp send_after(interval) do
     Process.send_after(self(), :run, interval)
+  end
+
+  defp update_stash(state) do
+    LabLive.Execution.Stash.update(state)
   end
 
   defp on_update_state(%State{} = state) do
