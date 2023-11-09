@@ -39,4 +39,9 @@ defmodule LabLive.Execution do
       end
     )
   end
+
+  @spec render(LabLive.Execution.Diagram.diagram()) :: Kino.Markdown.t()
+  def render(diagram) do
+    LabLive.Execution.Diagram.to_mermaid_markdown(diagram) |> Kino.render()
+  end
 end
