@@ -7,14 +7,13 @@ defmodule LabLive.Execution.Worker do
 
   defmodule State do
     @moduledoc false
-    defstruct diagram: %{}, status: :start, idle?: true, frame: nil
+    defstruct diagram: %{}, status: :start, idle?: true
   end
 
   @type state :: %State{
           diagram: Diagram.diagram(),
           status: Diagram.stage(),
-          idle?: boolean(),
-          frame: Kino.Frame.t()
+          idle?: boolean()
         }
 
   def start_link(_opts) do
@@ -34,7 +33,7 @@ defmodule LabLive.Execution.Worker do
 
   @impl GenServer
   def handle_cast({:set_diagram, diagram}, _state) do
-    new_state = %State{diagram: diagram, frame: Kino.Frame.new()}
+    new_state = %State{diagram: diagram}
     on_update_state(new_state)
     {:noreply, new_state}
   end
@@ -102,9 +101,9 @@ defmodule LabLive.Execution.Worker do
   end
 
   defp on_update_state(%State{} = state) do
-    Kino.Frame.render(
-      state.frame,
-      Diagram.to_mermaid_markdown(state.diagram, running: state.status)
+    :telemetry.execute(
+      [:lab_live, :execution, :update_state],
+      %{state: state}
     )
   end
 

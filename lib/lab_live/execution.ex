@@ -29,7 +29,14 @@ defmodule LabLive.Execution do
     end)
   end
 
-  def monitor() do
-    Worker.get_state().frame
+  def monitor(interval \\ 100) do
+    Kino.animate(
+      interval,
+      fn _ ->
+        Worker.get_state().status
+        |> inspect()
+        |> Kino.Text.new()
+      end
+    )
   end
 end
