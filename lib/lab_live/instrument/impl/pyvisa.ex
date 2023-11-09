@@ -6,9 +6,13 @@ defmodule LabLive.Instrument.Impl.Pyvisa do
 
   @impl Impl
   def init(opts) do
+    if not Keyword.has_key?(opts, :address) do
+      raise ":address option is required for #{__MODULE__}."
+    end
+
     python = Keyword.get(opts, :python)
     address = Keyword.get(opts, :address)
-    python_pid = start_python(python)
+    {:ok, python_pid} = start_python(python)
     {python_pid, address}
   end
 
@@ -38,9 +42,12 @@ defmodule LabLive.Instrument.Impl.Pyvisa do
   end
 
   defp start_python(python_exec) do
-    {:ok, pid} =
-      :python.start_link(python_path: @python_src, python: to_charlist(python_exec))
+    case python_exec do
+      nil ->
+        :python.start_link(python_path: @python_src)
 
-    pid
+      python_exec ->
+        :python.start_link(python_path: @python_src, python: to_charlist(python_exec))
+    end
   end
 end
