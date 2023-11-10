@@ -1,108 +1,63 @@
 defmodule LabLive.Data do
   @moduledoc """
-  Functions to handle data storages.
-
-      iex> alias LabLive.Data
-      iex> {:ok, pid} = Data.start(:a)
-      iex> 10 |> Data.update(:a)
-      :ok
-      iex> Data.get(:a)
-      10
-      iex> {:reset, ^pid} = Data.start(:a)
-
-  Starting multiple properties:
-      iex> alias LabLive.Data
-      iex> props = [b: [], c: [label: "label of c"]]
-      iex> [b: {:ok, _pid_b}, c: {:ok, _pid_c}] = Data.start(props)
-      iex> Data.opts(:c)
-      [label: "label of c"]
-      iex> Data.labels([:b, :c])
-      [b: "b", c: "label of c"]
-      iex> Data.update(%{b: 20, c: 30})
-      %{b: :ok, c: :ok}
-      iex> Data.get([:b, :c])
-      [b: 20, c: 30]
+  Agent server to hold data.
   """
-  alias LabLive.Data.StorageManager
-  alias LabLive.Data.Storage
 
-  def start(storages) when is_list(storages) or is_map(storages) do
-    StorageManager.start_storage(storages)
+  @type data() :: any()
+  @type start_args() :: [data() | GenServer.options()]
+  use Agent
+  alias LabLive.Data.Protocol
+
+  @spec start_link(start_args()) :: Agent.on_start()
+  def start_link([{:init, init} | opts]) do
+    Agent.start_link(fn -> init end, opts)
   end
 
-  def start(storage, opts \\ []) when is_atom(storage) and is_list(opts) do
-    StorageManager.start_storage(storage, opts)
+  @doc """
+  Gets the raw data stored in the storage.
+
+      iex> {:ok, pid} = LabLive.Data.start_link(init: 10)
+      iex> LabLive.Data.get(pid)
+      10
+  """
+  @spec get(GenServer.server()) :: data()
+  def get(server) do
+    Agent.get(server, & &1)
   end
 
-  def pid(key) do
-    StorageManager.info(key) |> elem(0)
+  @spec value(GenServer.server()) :: any()
+  def value(server) do
+    get(server) |> Protocol.value()
   end
 
-  def opts(key) do
-    StorageManager.info(key) |> elem(1)
+  @spec update(GenServer.server()) :: :ok
+  def update(server) do
+    Agent.update(server, fn data -> Protocol.update(data, nil) end)
   end
 
-  def stats(key) do
-    pid(key) |> Storage.stats()
+  @doc """
+  Updates the storage with new data.
+
+      iex> {:ok, pid} = LabLive.Data.start_link(init: 10)
+      iex> :ok = LabLive.Data.update(20, pid)
+      iex> LabLive.Data.get(pid)
+      20
+  """
+  @spec update(any(), GenServer.server()) :: :ok
+  def update(new, server) do
+    Agent.update(server, fn data -> Protocol.update(data, new) end)
   end
 
-  def label(key) do
-    case Keyword.get(opts(key), :label, nil) do
-      nil -> to_string(key)
-      label -> label
-    end
-  end
+  @doc """
+  Overrides the storage with new data.
 
-  def labels(keys) do
-    Enum.map(keys, fn key -> {key, label(key)} end)
-  end
-
-  @spec update(any(), atom()) :: :ok
-  def update(value, key) when is_atom(key) do
-    pid(key) |> Storage.update(value)
-  end
-
-  @spec update(any()) :: map()
-  def update(keys_and_values) do
-    for {key, value} <- keys_and_values do
-      {key, update(value, key)}
-    end
-    |> Enum.into(%{})
-  end
-
-  @spec get(atom()) :: any()
-  def get(key) when is_atom(key) do
-    pid(key) |> Storage.get()
-  end
-
-  @spec get([atom()]) :: map()
-  def get(keys) when is_list(keys) do
-    for key <- keys do
-      {key, get(key)}
-    end
-  end
-
-  def render(storages) do
-    content =
-      storages
-      |> Enum.filter(fn {_, opts} -> Keyword.get(opts, :visible?, true) end)
-      |> Enum.map(fn {key, opts} ->
-        value = get(key)
-
-        value_str =
-          case value do
-            %struct{} -> struct.to_string(value)
-            _ -> to_string(value)
-          end
-
-        "|#{key}|#{Keyword.get(opts, :label, to_string(key))}|#{value_str}|"
-      end)
-      |> Enum.join("\n")
-
-    Kino.Markdown.new("|key|label|value|\n|--|--|--|\n" <> content)
-  end
-
-  def monitor(storages, interval \\ 100) do
-    Kino.animate(interval, fn _ -> render(storages) end)
+      iex> {:ok, pid} = LabLive.Data.start_link(init: 10)
+      iex> :ok = LabLive.Data.override(20, pid)
+      iex> LabLive.Data.get(pid)
+      20
+  """
+  @spec override(data(), GenServer.server()) :: :ok
+  def override(data, server) do
+    Agent.update(server, fn _ -> data end)
   end
 end
