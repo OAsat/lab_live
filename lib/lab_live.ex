@@ -23,14 +23,20 @@ defmodule LabLive do
     Logger.info("Start logging to #{file}")
   end
 
-  def start_data(supervisor \\ LabLive.Data.Supervisor, init, opts) do
-    case DynamicSupervisor.start_child(supervisor, {LabLive.Data, [{:init, init} | opts]}) do
+  def start_many_data(list, supervisor \\ LabLive.Data.Supervisor) do
+    for opts <- list do
+      start_data(supervisor, opts)
+    end
+  end
+
+  def start_data(opts, supervisor \\ LabLive.Data.Supervisor) do
+    case DynamicSupervisor.start_child(supervisor, {LabLive.Data, opts}) do
       {:ok, pid} ->
         {:ok, pid}
 
       {:error, {:already_started, pid}} ->
-        :ok = init |> LabLive.Data.override(pid)
-        {:reset, pid}
+        :ok = opts[:init] |> LabLive.Data.override(pid)
+        {:override, pid}
 
       {:error, reason} ->
         {:error, reason}
