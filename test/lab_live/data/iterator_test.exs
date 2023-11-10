@@ -27,7 +27,7 @@ defmodule LabLive.Data.IteratorTest do
         assert false == Iterator.finish?(iter)
       end
 
-      assert Iterator.new(list) == Iterator.value(Iterator.reset(iter))
+      assert Iterator.new(list) == Iterator.reset(iter)
     end
   end
 end
