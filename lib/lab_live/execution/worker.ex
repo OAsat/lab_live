@@ -23,6 +23,7 @@ defmodule LabLive.Execution.Worker do
 
   @impl GenServer
   def init(nil) do
+    send_after(0)
     {:ok, LabLive.Execution.Stash.get()}
   end
 
@@ -57,11 +58,16 @@ defmodule LabLive.Execution.Worker do
   @impl GenServer
   def handle_info(:run, state) do
     update_stash(state)
-    next = run_step(state)
-    on_update(next)
-    if next.run?, do: send_after(0)
 
-    {:noreply, next}
+    if state.run? do
+      next = run_step(state)
+      on_update(next)
+      if next.run?, do: send_after(0)
+
+      {:noreply, next}
+    else
+      {:noreply, state}
+    end
   end
 
   @impl GenServer
@@ -90,8 +96,8 @@ defmodule LabLive.Execution.Worker do
   end
 
   @spec get_state(GenServer.name()) :: state()
-  def get_state(name \\ __MODULE__) do
-    GenServer.call(name, :get_state)
+  def get_state(name \\ __MODULE__, timeout \\ 5000) do
+    GenServer.call(name, :get_state, timeout)
   end
 
   defp send_after(interval) do
@@ -169,5 +175,9 @@ defmodule LabLive.Execution.Worker do
     else
       %State{state | stack: tail}
     end
+  end
+
+  defp run_step(%State{stack: [list | tail]} = state) when is_list(list) do
+    %State{state | stack: list ++ tail}
   end
 end

@@ -1,11 +1,12 @@
 defmodule LabLive.Execution.Supervisor do
+  @moduledoc false
   use Supervisor
 
   @impl Supervisor
   def init(nil) do
     children = [
       LabLive.Execution.Stash,
-      LabLive.Execution.Worker
+      {LabLive.Execution.Worker, name: LabLive.Execution.Worker}
     ]
 
     Supervisor.init(children,

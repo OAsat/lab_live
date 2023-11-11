@@ -16,14 +16,30 @@ defmodule LabLive.Data.Timer do
     %__MODULE__{threshold: threshold, start_time: Timex.now()}
   end
 
+  @doc """
+  Check if the timer has elapsed.
+      iex> timer = LabLive.Data.Timer.new(0)
+      iex> LabLive.Data.Timer.value(timer)
+      true
+  """
   @impl Data.Behaviour
-  def value(%__MODULE__{start_time: start}) do
-    Timex.diff(Timex.now(), start, :millisecond)
+  def value(%__MODULE__{threshold: threshold} = timer) do
+    diff_now(timer) >= threshold
   end
 
+  @doc """
+  Reset the timer.
+      iex> first = LabLive.Data.Timer.new(0)
+      iex> Process.sleep(1)
+      iex> updated = LabLive.Data.Timer.update(first, nil)
+      iex> Timex.diff(updated.start_time, first.start_time) > 0
+      true
+      iex> first.threshold == updated.threshold
+      true
+  """
   @impl Data.Behaviour
   def update(%__MODULE__{} = timer, nil) do
-    timer
+    %{timer | start_time: Timex.now()}
   end
 
   @doc """
@@ -33,34 +49,14 @@ defmodule LabLive.Data.Timer do
   """
   @impl Data.Behaviour
   def to_string(%__MODULE__{} = timer) do
-    if finish?(timer) do
+    if value(timer) do
       "timer >= #{timer.threshold}ms"
     else
       "timer < #{timer.threshold}ms"
     end
   end
 
-  @doc """
-  Check if the timer has elapsed.
-      iex> timer = LabLive.Data.Timer.new(0)
-      iex> LabLive.Data.Timer.finish?(timer)
-      true
-  """
-  def finish?(%__MODULE__{threshold: threshold, start_time: start_time}) do
-    Timex.diff(Timex.now(), start_time, :millisecond) >= threshold
-  end
-
-  @doc """
-  Reset the timer.
-      iex> first = LabLive.Data.Timer.new(0)
-      iex> Process.sleep(1)
-      iex> updated = LabLive.Data.Timer.reset(first)
-      iex> Timex.diff(updated.start_time, first.start_time) > 0
-      true
-      iex> first.threshold == updated.threshold
-      true
-  """
-  def reset(%__MODULE__{} = timer) do
-    %{timer | start_time: Timex.now()}
+  def diff_now(%__MODULE__{start_time: start}) do
+    Timex.diff(Timex.now(), start, :millisecond)
   end
 end
