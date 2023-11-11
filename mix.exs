@@ -25,7 +25,6 @@ defmodule LabLive.MixProject do
       {:telemetry, "~> 1.2"},
       {:kino, "~> 0.11.0"},
       {:kino_vega_lite, "~> 0.1.10"},
-      {:logger_file_backend, "~> 0.0.13"},
       {:ex_doc, "~> 0.30.8", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:stream_data, "~> 0.5", only: :test}
