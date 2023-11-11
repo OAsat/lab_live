@@ -1,6 +1,9 @@
 defmodule LabLive.Data.Stats do
   defstruct size: 0, max_size: :inf, sum: 0, square_sum: 0, queue: :queue.new()
 
+  alias LabLive.Data
+  @behaviour Data.Behaviour
+
   @type max_size :: non_neg_integer() | :inf
   @type size :: non_neg_integer()
 
@@ -12,76 +15,18 @@ defmodule LabLive.Data.Stats do
           queue: :queue.queue()
         }
 
-  @doc """
-  Create a new stats struct.
-      iex> LabLive.Data.Stats.new([1, 2, 3])
-      %LabLive.Data.Stats{max_size: :inf, queue: {[3, 2], [1]}, size: 3, square_sum: 14, sum: 6}
-
-      iex> LabLive.Data.Stats.new([1, 2, 3], 2)
-      ** (RuntimeError) list size(3) must be same or less than max_size(2).
-  """
-  @spec new(list(), any()) :: LabLive.Data.Stats.t()
-  def new(list \\ [], max_size \\ :inf) when is_list(list) do
-    if max_size != :inf do
-      if length(list) > max_size do
-        raise "list size(#{length(list)}) must be same or less than max_size(#{max_size})."
-      end
-    end
-
-    %LabLive.Data.Stats{
-      size: length(list),
-      max_size: max_size,
-      sum: Enum.sum(list),
-      square_sum: Enum.sum(for x <- list, do: x * x),
-      queue: :queue.from_list(list)
-    }
-  end
-
-  def refresh(stats = %LabLive.Data.Stats{}) do
-    new(stats.max_size)
-  end
-
-  @spec append_anyway(LabLive.Data.Stats.t(), number()) :: LabLive.Data.Stats.t()
-  def append_anyway(stats = %LabLive.Data.Stats{}, value) do
-    %LabLive.Data.Stats{
-      size: stats.size + 1,
-      max_size: stats.max_size,
-      sum: stats.sum + value,
-      square_sum: stats.square_sum + value * value,
-      queue: :queue.in(value, stats.queue)
-    }
-  end
-
-  @doc """
-  Drop the oldest value from the queue.
-      iex> LabLive.Data.Stats.new([1, 2, 3]) |> LabLive.Data.Stats.drop_oldest()
-      %LabLive.Data.Stats{size: 2, max_size: :inf, sum: 5, square_sum: 13, queue: {[3], [2]}}
-  """
-  @spec drop_oldest(LabLive.Data.Stats.t()) :: LabLive.Data.Stats.t()
-  def drop_oldest(stats = %LabLive.Data.Stats{}) do
-    {{:value, dropped}, new_queue} = :queue.out(stats.queue)
-
-    %LabLive.Data.Stats{
-      size: stats.size - 1,
-      max_size: stats.max_size,
-      sum: stats.sum - dropped,
-      square_sum: stats.square_sum - dropped * dropped,
-      queue: new_queue
-    }
+  @impl Data.Behaviour
+  def new(max_size) do
+    %__MODULE__{max_size: max_size}
   end
 
   @doc """
   Append a value to the queue.
   The oldest value will be dropped if the queue is full.
-
-      iex> LabLive.Data.Stats.new([1, 2, 3], 5) |> LabLive.Data.Stats.append(4)
-      %LabLive.Data.Stats{size: 4, max_size: 5, sum: 10, square_sum: 30, queue: {[4, 3, 2], [1]}}
-
-      iex> LabLive.Data.Stats.new([1, 2, 3], 3) |> LabLive.Data.Stats.append(4)
-      %LabLive.Data.Stats{size: 3, max_size: 3, sum: 9, square_sum: 29, queue: {[4], [2, 3]}}
   """
-  @spec append(LabLive.Data.Stats.t(), number()) :: LabLive.Data.Stats.t()
-  def append(stats = %LabLive.Data.Stats{}, value) do
+  @impl Data.Behaviour
+  @spec update(LabLive.Data.Stats.t(), number()) :: LabLive.Data.Stats.t()
+  def update(stats = %__MODULE__{}, value) do
     new_stats = append_anyway(stats, value)
 
     if stats.max_size == :inf do
@@ -96,15 +41,79 @@ defmodule LabLive.Data.Stats do
   end
 
   @doc """
-  Calculate the variance of the queue.
-      iex> LabLive.Data.Stats.new([1, 2, 3, 4, 5, 6, 7]) |> LabLive.Data.Stats.variance()
-      4.0
+  Get the latest value from the queue.
 
-      iex> LabLive.Data.Stats.new() |> LabLive.Data.Stats.variance()
-      nil
+      iex> stats = LabLive.Data.Stats.new(:inf)
+      iex> LabLive.Data.Stats.value(stats)
+      :empty
+      iex> stats = LabLive.Data.Stats.update(stats, 20)
+      iex> LabLive.Data.Stats.value(stats)
+      20
+      iex> stats = LabLive.Data.Stats.update(stats, 1)
+      iex> LabLive.Data.Stats.value(stats)
+      1
   """
-  @spec variance(LabLive.Data.Stats.t()) :: nil | float()
-  def variance(stats) do
+  @impl Data.Behaviour
+  def value(%__MODULE__{queue: queue}) do
+    case :queue.peek_r(queue) do
+      {:value, value} -> value
+      :empty -> :empty
+    end
+  end
+
+  @doc """
+  to string.
+
+      iex> stats = LabLive.Data.Stats.new(:inf)
+      iex> LabLive.Data.Stats.to_string(stats)
+      "size: 0, max_size: inf, sum: 0, square_sum: 0, queue: []"
+      iex> stats = LabLive.Data.Stats.update(stats, 2)
+      iex> LabLive.Data.Stats.to_string(stats)
+      "size: 1, max_size: inf, sum: 2, square_sum: 4, queue: [2]"
+  """
+  @impl Data.Behaviour
+  def to_string(%__MODULE__{} = data) do
+    [
+      "size: #{data.size}",
+      "max_size: #{data.max_size}",
+      "sum: #{data.sum}",
+      "square_sum: #{data.square_sum}",
+      "queue: #{data.queue |> :queue.to_list() |> inspect()}"
+    ]
+    |> Enum.join(", ")
+  end
+
+  def reset(%__MODULE__{max_size: max_size}) do
+    new(max_size)
+  end
+
+  defp append_anyway(stats = %__MODULE__{}, value) do
+    %__MODULE__{
+      size: stats.size + 1,
+      max_size: stats.max_size,
+      sum: stats.sum + value,
+      square_sum: stats.square_sum + value * value,
+      queue: :queue.in(value, stats.queue)
+    }
+  end
+
+  defp drop_oldest(stats = %__MODULE__{}) do
+    {{:value, dropped}, new_queue} = :queue.out(stats.queue)
+
+    %__MODULE__{
+      size: stats.size - 1,
+      max_size: stats.max_size,
+      sum: stats.sum - dropped,
+      square_sum: stats.square_sum - dropped * dropped,
+      queue: new_queue
+    }
+  end
+
+  @doc """
+  Calculate the variance of the queue.
+  """
+  @spec variance(t()) :: nil | float()
+  def variance(stats = %__MODULE__{}) do
     if stats.size > 0 do
       (stats.square_sum - stats.sum * stats.sum / stats.size) / stats.size
     else
@@ -114,14 +123,9 @@ defmodule LabLive.Data.Stats do
 
   @doc """
   Calculate the variance of the queue.
-      iex> LabLive.Data.Stats.new([1, 2, 3, 4, 5, 6, 7]) |> LabLive.Data.Stats.stddev()
-      2.0
-
-      iex> LabLive.Data.Stats.new() |> LabLive.Data.Stats.stddev()
-      nil
   """
-  @spec stddev(LabLive.Data.Stats.t()) :: nil | float()
-  def stddev(stats) do
+  @spec stddev(t()) :: nil | float()
+  def stddev(stats = %__MODULE__{}) do
     case variance(stats) do
       nil -> nil
       var -> :math.sqrt(var)
@@ -130,11 +134,9 @@ defmodule LabLive.Data.Stats do
 
   @doc """
   Calculate the mean of the queue.
-      iex> LabLive.Data.Stats.new([1, 2, 3, 4, 5, 6, 7]) |> LabLive.Data.Stats.mean()
-      4.0
   """
-  @spec mean(LabLive.Data.Stats.t()) :: nil | float()
-  def mean(stats) do
+  @spec mean(t()) :: nil | float()
+  def mean(stats = %__MODULE__{}) do
     if stats.size > 0 do
       stats.sum / stats.size
     else
