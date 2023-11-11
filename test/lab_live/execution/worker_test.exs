@@ -46,4 +46,24 @@ defmodule LabLive.Execution.WorkerTest do
     assert_receive {5, 3, 4}
     assert_receive {6, 3, 5}
   end
+
+  test "while loop" do
+    this = self()
+
+    {:ok, counter} = Agent.start_link(fn -> 0 end)
+    10
+
+    func = fn -> Agent.update(counter, &(1 + &1)) end
+
+    diagram = [
+      [while: fn -> Agent.get(counter, & &1) < 10 end, do: func],
+      fn -> send(this, Agent.get(counter, & &1)) end
+    ]
+
+    {:ok, pid} = Worker.start_link()
+    Worker.set_diagram(pid, diagram)
+    Worker.start_run(pid)
+
+    assert_receive 10
+  end
 end

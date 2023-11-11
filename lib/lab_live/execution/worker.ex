@@ -157,4 +157,17 @@ defmodule LabLive.Execution.Worker do
       %State{state | stack: [iteration, [iterating: key, do: iteration]] ++ tail}
     end
   end
+
+  defp run_step(%State{stack: [while: condition, do: iteration]} = state) do
+    %State{state | stack: [[while: condition, do: iteration]]}
+  end
+
+  defp run_step(%State{stack: [[while: condition, do: iteration] | tail]} = state)
+       when is_function(condition, 0) do
+    if condition.() do
+      %State{state | stack: [iteration, [while: condition, do: iteration]] ++ tail}
+    else
+      %State{state | stack: tail}
+    end
+  end
 end
