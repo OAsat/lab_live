@@ -4,13 +4,13 @@ defmodule LabLive.Data do
   """
 
   @type content() :: any()
-  @type name() :: Genserver.name()
-  @type id() :: Genserver.id()
+  @type name() :: GenServer.name()
+  @type id() :: GenServer.server()
   @type data_spec() ::
           {:init, content()}
           | {:label, String.t()}
           | {:visible?, boolean()}
-          | {:timeout, Genserver.timeout()}
+          | {:timeout, timeout()}
   @type data_specs() :: [data_spec()]
   @type start_opts() :: [{:name, name()} | data_spec()]
   use Agent

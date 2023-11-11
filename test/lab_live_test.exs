@@ -45,6 +45,7 @@ defmodule LabLiveTest do
       data_to_markdown_test3: [init: 30],
       data_to_markdown_test4: [init: LabLive.Data.Iterator.new([1, 2]), label: "label4"]
     ]
+
     LabLive.start_many_data(many_data, LabLive.Data.TestSupervisor)
 
     expected = """
