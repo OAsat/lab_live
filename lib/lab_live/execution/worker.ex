@@ -170,4 +170,8 @@ defmodule LabLive.Execution.Worker do
       %State{state | stack: tail}
     end
   end
+
+  defp run_step(%State{stack: [list | tail]} = state) when is_list(list) do
+    %State{state | stack: list ++ tail}
+  end
 end

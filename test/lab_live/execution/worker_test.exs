@@ -49,9 +49,7 @@ defmodule LabLive.Execution.WorkerTest do
 
   test "while loop" do
     this = self()
-
     {:ok, counter} = Agent.start_link(fn -> 0 end)
-
     func = fn -> Agent.update(counter, &(1 + &1)) end
 
     diagram = [
@@ -64,5 +62,19 @@ defmodule LabLive.Execution.WorkerTest do
     Worker.start_run(pid)
 
     assert_receive 10
+  end
+
+  test "list inside list" do
+    this = self()
+    {:ok, stack} = Agent.start_link(fn -> [0] end)
+    f = fn -> Agent.update(stack, fn [head | _] = list -> [head + 1 | list] end) end
+
+    diagram = [[f, f, f], fn -> send(this, Agent.get(stack, & &1)) end]
+
+    {:ok, pid} = Worker.start_link()
+    Worker.set_diagram(pid, diagram)
+    Worker.start_run(pid)
+
+    assert_receive [3, 2, 1, 0]
   end
 end
