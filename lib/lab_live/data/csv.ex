@@ -75,7 +75,7 @@ defmodule LabLive.Data.Csv do
     column_labels |> Keyword.values() |> Enum.join(",")
   end
 
-  defp data_to_string(labels, values) do
+  def data_to_string(labels, values) do
     for key <- Keyword.keys(labels) do
       "#{LabLive.Data.Protocol.value(values[key])}"
     end
