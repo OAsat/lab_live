@@ -1,36 +1,69 @@
 defmodule LabLive.Execution.WorkerTest do
   alias LabLive.Execution.Worker
-  alias LabLive.ExecutionTest.SampleExecution
-  import LabLive.Execution
   use ExUnit.Case
 
   doctest Worker
 
-  defmodule DefSample do
-    def define(module, test_pid) do
-      defmodule module do
-        @test_pid :erlang.pid_to_list(test_pid)
-        def test_pid(), do: :erlang.list_to_pid(@test_pid)
-        def a(), do: send(test_pid(), :send_from_a)
-        def b(), do: send(test_pid(), :send_from_b)
-      end
-    end
+  test "sequential run" do
+    this = self()
+
+    diagram = [
+      fn -> send(this, :running_1) end,
+      fn -> send(this, :running_2) end
+    ]
+
+    {:ok, pid} = Worker.start_link()
+    Worker.set_diagram(pid, diagram)
+    Worker.start_run(pid)
+
+    assert_receive :running_1
+    assert_receive :running_2
   end
 
-  test "diagram runs" do
-    DefSample.define(SampleExecution, self())
+  test "iteration" do
+    alias LabLive.Data
+    this = self()
 
-    Worker.set_diagram(%{
-      :start => {SampleExecution, :a},
-      {SampleExecution, :a} => branch(true, true: {SampleExecution, :b}, false: :finish),
-      {SampleExecution, :b} => :finish
-    })
+    {:ok, iter1} = Data.start_link(init: Data.Iterator.new([1, 2, 3]))
+    {:ok, iter2} = Data.start_link(init: Data.Iterator.new([4, 5]))
+    {:ok, counter} = Agent.start_link(fn -> 0 end)
 
-    Worker.start_run()
+    func = fn ->
+      Agent.update(counter, &(1 + &1))
+      send(this, {Agent.get(counter, & &1), Data.value(iter1), Data.value(iter2)})
+    end
 
-    assert_receive :send_from_a
-    assert_receive :send_from_b
+    diagram = [iterate: iter1, do: [iterate: iter2, do: func]]
 
-    assert Worker.get_state().status == :finish
+    {:ok, pid} = Worker.start_link()
+    Worker.set_diagram(pid, diagram)
+    Worker.start_run(pid)
+
+    assert_receive {1, 1, 4}
+    assert_receive {2, 1, 5}
+    assert_receive {3, 2, 4}
+    assert_receive {4, 2, 5}
+    assert_receive {5, 3, 4}
+    assert_receive {6, 3, 5}
+  end
+
+  test "while loop" do
+    this = self()
+
+    {:ok, counter} = Agent.start_link(fn -> 0 end)
+    10
+
+    func = fn -> Agent.update(counter, &(1 + &1)) end
+
+    diagram = [
+      [while: fn -> Agent.get(counter, & &1) < 10 end, do: func],
+      fn -> send(this, Agent.get(counter, & &1)) end
+    ]
+
+    {:ok, pid} = Worker.start_link()
+    Worker.set_diagram(pid, diagram)
+    Worker.start_run(pid)
+
+    assert_receive 10
   end
 end

@@ -3,26 +3,26 @@ defmodule LabLive.Execution.Worker do
   Worker to run execution diagram.
   """
   use GenServer
-  alias LabLive.Execution.Diagram
+  alias LabLive.Data
+  alias LabLive.Data.Iterator
 
   defmodule State do
     @moduledoc false
-    defstruct diagram: %{}, status: :start, idle?: true
+    defstruct diagram: [], stack: [], run?: false
   end
 
   @type state :: %State{
-          diagram: Diagram.diagram(),
-          status: Diagram.stage(),
-          idle?: boolean()
+          diagram: list(),
+          stack: list(),
+          run?: boolean()
         }
 
-  def start_link(_opts) do
-    GenServer.start_link(__MODULE__, nil, name: __MODULE__)
+  def start_link(opts \\ []) do
+    GenServer.start_link(__MODULE__, nil, opts)
   end
 
   @impl GenServer
   def init(nil) do
-    send_after(0)
     {:ok, LabLive.Execution.Stash.get()}
   end
 
@@ -33,7 +33,7 @@ defmodule LabLive.Execution.Worker do
 
   @impl GenServer
   def handle_cast({:set_diagram, diagram}, _state) do
-    new_state = %State{diagram: diagram}
+    new_state = %State{diagram: diagram, stack: diagram}
     {:noreply, new_state |> on_update()}
   end
 
@@ -41,28 +41,27 @@ defmodule LabLive.Execution.Worker do
   def handle_cast(:start, state) do
     send_after(0)
 
-    {:noreply, %{state | idle?: false} |> on_update()}
+    {:noreply, %{state | run?: true} |> on_update()}
   end
 
   @impl GenServer
   def handle_cast(:pause, state) do
-    {:noreply, %{state | idle?: true} |> on_update()}
+    {:noreply, %{state | run?: false} |> on_update()}
   end
 
   @impl GenServer
-  def handle_cast(:reset, state) do
-    {:noreply, %State{state | status: :start, idle?: true} |> on_update()}
+  def handle_cast(:reset, %State{diagram: diagram} = state) do
+    {:noreply, %State{state | stack: diagram, run?: false} |> on_update()}
   end
 
   @impl GenServer
   def handle_info(:run, state) do
     update_stash(state)
+    next = run_step(state)
+    on_update(next)
+    if next.run?, do: send_after(0)
 
-    if state.idle? do
-      {:noreply, state}
-    else
-      {:noreply, state |> run_step() |> on_update()}
-    end
+    {:noreply, next}
   end
 
   @impl GenServer
@@ -70,29 +69,29 @@ defmodule LabLive.Execution.Worker do
     {:reply, state, state}
   end
 
-  @spec set_diagram(Diagram.diagram()) :: :ok
-  def set_diagram(diagram) do
-    GenServer.cast(__MODULE__, {:set_diagram, diagram})
+  @spec set_diagram(GenServer.name(), list()) :: :ok
+  def set_diagram(name \\ __MODULE__, diagram) do
+    GenServer.cast(name, {:set_diagram, diagram})
   end
 
-  @spec start_run() :: :ok
-  def start_run() do
-    GenServer.cast(__MODULE__, :start)
+  @spec start_run(GenServer.name()) :: :ok
+  def start_run(name \\ __MODULE__) do
+    GenServer.cast(name, :start)
   end
 
-  @spec pause() :: :ok
-  def pause() do
-    GenServer.cast(__MODULE__, :pause)
+  @spec pause(GenServer.name()) :: :ok
+  def pause(name \\ __MODULE__) do
+    GenServer.cast(name, :pause)
   end
 
-  @spec reset() :: :ok
-  def reset() do
-    GenServer.cast(__MODULE__, :reset)
+  @spec reset(GenServer.name()) :: :ok
+  def reset(name \\ __MODULE__) do
+    GenServer.cast(name, :reset)
   end
 
-  @spec get_state() :: state()
-  def get_state() do
-    GenServer.call(__MODULE__, :get_state)
+  @spec get_state(GenServer.name()) :: state()
+  def get_state(name \\ __MODULE__) do
+    GenServer.call(name, :get_state)
   end
 
   defp send_after(interval) do
@@ -114,14 +113,61 @@ defmodule LabLive.Execution.Worker do
     state
   end
 
-  defp run_step(%State{} = state) do
-    case Diagram.run_step(state.diagram, state.status) do
-      :finish ->
-        %State{state | status: :finish, idle?: true}
+  defp run_step(%State{stack: []} = state) do
+    %State{state | run?: false}
+  end
 
-      next ->
-        send_after(0)
-        %State{state | status: next}
+  defp run_step(%State{stack: [function | tail]} = state) when is_function(function, 0) do
+    function.()
+    %State{state | stack: tail}
+  end
+
+  defp run_step(%State{stack: [{module, function_name} | tail]} = state)
+       when is_atom(module) and is_atom(function_name) do
+    Kernel.apply(module, function_name, [])
+    %State{state | stack: tail}
+  end
+
+  defp run_step(%State{stack: [{module, function_name, args} | tail]} = state)
+       when is_atom(module) and is_atom(function_name) and is_list(args) do
+    Kernel.apply(module, function_name, args)
+    %State{state | stack: tail}
+  end
+
+  defp run_step(%State{stack: [iterate: key, do: iteration]} = state) do
+    %State{state | stack: [[iterate: key, do: iteration]]}
+  end
+
+  defp run_step(%State{stack: [[iterate: key, do: iteration] | tail]} = state) do
+    set_iteration = fn ->
+      Data.get(key) |> Iterator.reset() |> Data.override(key)
+      Data.update(key)
+    end
+
+    iterating = [iterating: key, do: iteration]
+    %State{state | stack: [set_iteration, iteration, iterating] ++ tail}
+  end
+
+  defp run_step(%State{stack: [[iterating: key, do: iteration] | tail]} = state) do
+    Data.update(key)
+
+    if Data.get(key) |> Iterator.finish?() do
+      %State{state | stack: tail}
+    else
+      %State{state | stack: [iteration, [iterating: key, do: iteration]] ++ tail}
+    end
+  end
+
+  defp run_step(%State{stack: [while: condition, do: iteration]} = state) do
+    %State{state | stack: [[while: condition, do: iteration]]}
+  end
+
+  defp run_step(%State{stack: [[while: condition, do: iteration] | tail]} = state)
+       when is_function(condition, 0) do
+    if condition.() do
+      %State{state | stack: [iteration, [while: condition, do: iteration]] ++ tail}
+    else
+      %State{state | stack: tail}
     end
   end
 end

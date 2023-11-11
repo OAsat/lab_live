@@ -1,4 +1,5 @@
 defmodule LabLive.Execution.Stash do
+  @moduledoc false
   use Agent
 
   def start_link(_init_arg) do
