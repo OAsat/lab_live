@@ -1,14 +1,22 @@
 defmodule LabLive.Data do
   @moduledoc """
-  Agent server to hold data.
+  Agent id to hold data.
   """
 
-  @type data() :: any()
-  @type start_args() :: [data() | GenServer.options()]
+  @type content() :: any()
+  @type name() :: Genserver.name()
+  @type id() :: Genserver.id()
+  @type data_spec() ::
+          {:init, content()}
+          | {:label, String.t()}
+          | {:visible?, boolean()}
+          | {:timeout, Genserver.timeout()}
+  @type data_specs() :: [data_spec()]
+  @type start_opts() :: [{:name, name()} | data_spec()]
   use Agent
   alias LabLive.Data.Protocol
 
-  @spec start_link(start_args()) :: Agent.on_start()
+  @spec start_link(start_opts()) :: Agent.on_start()
   def start_link(opts) do
     Agent.start_link(fn -> opts[:init] end, opts)
   end
@@ -25,9 +33,9 @@ defmodule LabLive.Data do
       iex> LabLive.Data.get(pid)
       %LabLive.Data.Iterator{count: :not_started, list: [1, 2, 3]}
   """
-  @spec get(GenServer.server()) :: data()
-  def get(server) do
-    Agent.get(server, & &1)
+  @spec get(id()) :: content()
+  def get(id) do
+    Agent.get(id, & &1)
   end
 
   @doc """
@@ -42,9 +50,9 @@ defmodule LabLive.Data do
       iex> LabLive.Data.value(pid)
       :not_started
   """
-  @spec value(GenServer.server()) :: any()
-  def value(server) do
-    get(server) |> Protocol.value()
+  @spec value(id()) :: any()
+  def value(id) do
+    get(id) |> Protocol.value()
   end
 
   @doc """
@@ -61,14 +69,14 @@ defmodule LabLive.Data do
       iex> LabLive.Data.value(pid)
       1
   """
-  @spec update(GenServer.server()) :: :ok
-  def update(server) do
-    Agent.update(server, fn data -> Protocol.update(data, nil) end)
+  @spec update(id()) :: :ok
+  def update(id) do
+    Agent.update(id, fn data -> Protocol.update(data, nil) end)
   end
 
-  @spec update(any(), GenServer.server()) :: :ok
-  def update(new, server) do
-    Agent.update(server, fn data -> Protocol.update(data, new) end)
+  @spec update(any(), id()) :: :ok
+  def update(new, id) do
+    Agent.update(id, fn data -> Protocol.update(data, new) end)
   end
 
   @doc """
@@ -79,8 +87,8 @@ defmodule LabLive.Data do
       iex> LabLive.Data.get(pid)
       20
   """
-  @spec override(data(), GenServer.server()) :: :ok
-  def override(data, server) do
-    Agent.update(server, fn _ -> data end)
+  @spec override(content(), id()) :: :ok
+  def override(data, id) do
+    Agent.update(id, fn _ -> data end)
   end
 end
