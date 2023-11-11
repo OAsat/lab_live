@@ -51,7 +51,6 @@ defmodule LabLive.Execution.WorkerTest do
     this = self()
 
     {:ok, counter} = Agent.start_link(fn -> 0 end)
-    10
 
     func = fn -> Agent.update(counter, &(1 + &1)) end
 
