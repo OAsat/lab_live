@@ -123,6 +123,11 @@ defmodule LabLive.Execution.Worker do
     %State{state | run?: false}
   end
 
+  defp run_step(%State{stack: [sleep | tail]} = state) when is_integer(sleep) do
+    Process.sleep(sleep)
+    %State{state | stack: tail}
+  end
+
   defp run_step(%State{stack: [function | tail]} = state) when is_function(function, 0) do
     function.()
     %State{state | stack: tail}
