@@ -1,6 +1,6 @@
 defmodule LabLive.Data.Timer do
   @moduledoc """
-  Timer struct.
+  Timer which returns true if the provided amount of time has been elapsed.
   """
   defstruct [:threshold, :start_time]
   alias LabLive.Data
@@ -17,10 +17,14 @@ defmodule LabLive.Data.Timer do
   end
 
   @doc """
-  Check if the timer has elapsed.
+  True if the timer has elapsed.
       iex> timer = LabLive.Data.Timer.new(0)
       iex> LabLive.Data.Timer.value(timer)
       true
+
+      iex> timer = LabLive.Data.Timer.new(100_000_000)
+      iex> LabLive.Data.Timer.value(timer)
+      false
   """
   @impl Data.Behaviour
   def value(%__MODULE__{threshold: threshold} = timer) do
@@ -28,7 +32,7 @@ defmodule LabLive.Data.Timer do
   end
 
   @doc """
-  Reset the timer.
+  Resets the start-time of the timer.
       iex> first = LabLive.Data.Timer.new(0)
       iex> Process.sleep(1)
       iex> updated = LabLive.Data.Timer.update(first, nil)
@@ -44,15 +48,25 @@ defmodule LabLive.Data.Timer do
 
   @doc """
   to_string
-      iex> LabLive.Data.Timer.new(1000) |> LabLive.Data.Timer.to_string()
-      "timer < 1000ms"
+
+  ```
+  timer = LabLive.Data.Timer.new(2_000)
+  LabLive.Data.Timer.to_string(timer)
+  #=> "false (0 ms < 2000 ms)"
+  Process.sleep(1_000)
+  LabLive.Data.Timer.to_string(timer)
+  #=> "false (1000 ms < 2000 ms)"
+  Process.sleep(1_000)
+  LabLive.Data.Timer.to_string(timer)
+  #=> "true (2002 ms >= 2000 ms)"
+  ```
   """
   @impl Data.Behaviour
   def to_string(%__MODULE__{} = timer) do
     if value(timer) do
-      "timer >= #{timer.threshold}ms"
+      "true (#{diff_now(timer)} ms >= #{timer.threshold} ms)"
     else
-      "timer < #{timer.threshold}ms"
+      "false (#{diff_now(timer)} ms < #{timer.threshold} ms)"
     end
   end
 

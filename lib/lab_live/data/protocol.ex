@@ -14,7 +14,8 @@ defimpl LabLive.Data.Protocol,
     LabLive.Data.Stats,
     LabLive.Data.Csv,
     LabLive.Data.Iterator,
-    LabLive.Data.Timer
+    LabLive.Data.Timer,
+    LabLive.Data.Loop
   ] do
   def value(%struct{} = data), do: struct.value(data)
   def update(%struct{} = data, new), do: struct.update(data, new)
@@ -25,7 +26,8 @@ defimpl String.Chars,
     LabLive.Data.Stats,
     LabLive.Data.Csv,
     LabLive.Data.Iterator,
-    LabLive.Data.Timer
+    LabLive.Data.Timer,
+    LabLive.Data.Loop
   ] do
   def to_string(%struct{} = data), do: struct.to_string(data)
 end
