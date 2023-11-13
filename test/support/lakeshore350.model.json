@@ -1,8 +1,8 @@
 {
     "name": "LakeShore 350",
     "character": {
-        "write_termination": "\n",
-        "read_termination": "\r\n",
+        "input_term": "\n",
+        "output_term": "\r\n",
         "joiner": ";"
     },
     "query": {
