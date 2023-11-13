@@ -27,7 +27,8 @@ defmodule LabLive.MixProject do
       {:kino_vega_lite, "~> 0.1.10"},
       {:ex_doc, "~> 0.30.8", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:stream_data, "~> 0.5", only: :test}
+      {:stream_data, "~> 0.5", only: :test},
+      {:mox, "~> 1.0", only: :test}
     ]
   end
 end

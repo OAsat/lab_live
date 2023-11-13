@@ -1,23 +1,8 @@
 defmodule LabLive.Instrument.Port do
   @moduledoc """
   Sever to communicate with measurement instrument.
-
-  See `LabLive.Instrument.Impl.Dummy` for examples.
-
-  ### Example
-  (For the definition of `Lakeshore350.dummy/0` and `Lakeshore350`, see `LabLive.Instrument.Model`.)
-      iex> alias LabLive.Instrument.Port
-      iex> map = Lakeshore350.dummy()
-      iex> {:ok, pid} = Port.start_link([name: :ls350, type: LabLive.Instrument.Impl.Dummy, dummy: map, sleep_after: 1])
-      iex> Port.read(pid, "SETP? 2\\n")
-      "1.0\\r\\n"
-      iex> Port.read(pid, Lakeshore350, :ramp, channel: 2)
-      %{onoff: 1, kpermin: 0.2}
-      iex> Port.read_joined(pid, Lakeshore350, sensor: [channel: "A"], sensor: [channel: "C"], heater: [channel: 2])
-      [sensor: %{ohm: 1200.0}, sensor: %{ohm: 0.23}, heater: %{percentage: 56.7}]
   """
   use GenServer
-  alias LabLive.Instrument.Model
 
   defmodule State do
     @moduledoc false
@@ -51,7 +36,7 @@ defmodule LabLive.Instrument.Port do
       raise ":type option is required."
     end
 
-    impl = opts[:type]
+    impl = Application.get_env(:lab_live, :inst_type, opts[:type])
     %State{resource: impl.init(opts), impl: impl, opts: opts}
   end
 
@@ -118,32 +103,8 @@ defmodule LabLive.Instrument.Port do
     GenServer.call(pid, {:read, message})
   end
 
-  @spec read(pid(), Model.t(), atom(), Keyword.t()) :: map()
-  def read(pid, model, key, opts \\ []) when is_atom(key) and is_list(opts) do
-    {query, parser} = Model.get_reader(model, key, opts)
-    read(pid, query) |> parser.()
-  end
-
-  @spec read_joined(pid(), Model.t(), Keyword.t()) :: Keyword.t()
-  def read_joined(pid, model, keys_and_opts) when is_list(keys_and_opts) do
-    {query, parser} = Model.get_joined_reader(model, keys_and_opts)
-    read(pid, query) |> parser.()
-  end
-
   @spec write(pid(), String.t()) :: :ok
   def write(pid, message) when is_binary(message) do
     GenServer.cast(pid, {:write, message})
-  end
-
-  @spec write(pid(), Model.t(), atom(), Keyword.t()) :: :ok
-  def write(pid, model, key, opts \\ []) do
-    query = Model.get_writer(model, key, opts)
-    write(pid, query)
-  end
-
-  @spec write_joined(pid(), Model.t(), Keyword.t()) :: :ok
-  def write_joined(pid, model, keys_and_opts) when is_list(keys_and_opts) do
-    query = Model.get_joined_writer(model, keys_and_opts)
-    write(pid, query)
   end
 end
