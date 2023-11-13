@@ -4,7 +4,7 @@ defmodule LabLive.MixProject do
   def project do
     [
       app: :lab_live,
-      version: "0.2.1",
+      version: "0.2.2",
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       deps: deps()
@@ -21,7 +21,6 @@ defmodule LabLive.MixProject do
   defp deps do
     [
       {:erlport, "~> 0.11.0"},
-      {:timex, "~> 3.7"},
       {:telemetry, "~> 1.2"},
       {:kino, "~> 0.11.0"},
       {:kino_vega_lite, "~> 0.1.10"},

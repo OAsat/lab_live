@@ -7,22 +7,27 @@ defmodule LabLive.Data.Timer do
   @behaviour Data.Behaviour
 
   @type t() :: %__MODULE__{
-          threshold: non_neg_integer(),
+          threshold: non_neg_integer() | :inf,
           start_time: Time.t()
         }
 
   @impl Data.Behaviour
   def new(threshold) do
-    %__MODULE__{threshold: threshold, start_time: Timex.now()}
+    %__MODULE__{threshold: threshold, start_time: Time.utc_now()}
   end
 
   @doc """
   True if the timer has elapsed.
+
       iex> timer = LabLive.Data.Timer.new(0)
       iex> LabLive.Data.Timer.value(timer)
       true
 
       iex> timer = LabLive.Data.Timer.new(100_000_000)
+      iex> LabLive.Data.Timer.value(timer)
+      false
+
+      iex> timer = LabLive.Data.Timer.new(:inf)
       iex> LabLive.Data.Timer.value(timer)
       false
   """
@@ -36,14 +41,14 @@ defmodule LabLive.Data.Timer do
       iex> first = LabLive.Data.Timer.new(0)
       iex> Process.sleep(1)
       iex> updated = LabLive.Data.Timer.update(first, nil)
-      iex> Timex.diff(updated.start_time, first.start_time) > 0
+      iex> Time.diff(updated.start_time, first.start_time, :millisecond) > 0
       true
       iex> first.threshold == updated.threshold
       true
   """
   @impl Data.Behaviour
   def update(%__MODULE__{} = timer, nil) do
-    %{timer | start_time: Timex.now()}
+    %{timer | start_time: Time.utc_now()}
   end
 
   @doc """
@@ -71,6 +76,6 @@ defmodule LabLive.Data.Timer do
   end
 
   def diff_now(%__MODULE__{start_time: start}) do
-    Timex.diff(Timex.now(), start, :millisecond)
+    Time.diff(Time.utc_now(), start, :millisecond)
   end
 end
