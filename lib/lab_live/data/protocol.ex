@@ -11,7 +11,7 @@ end
 
 defimpl LabLive.Data.Protocol,
   for: [
-    LabLive.Data.Stats,
+    LabLive.Data.Cache,
     LabLive.Data.Csv,
     LabLive.Data.Iterator,
     LabLive.Data.Timer,
@@ -23,7 +23,7 @@ end
 
 defimpl String.Chars,
   for: [
-    LabLive.Data.Stats,
+    LabLive.Data.Cache,
     LabLive.Data.Csv,
     LabLive.Data.Iterator,
     LabLive.Data.Timer,
