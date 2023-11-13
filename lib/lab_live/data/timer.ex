@@ -7,7 +7,7 @@ defmodule LabLive.Data.Timer do
   @behaviour Data.Behaviour
 
   @type t() :: %__MODULE__{
-          threshold: non_neg_integer(),
+          threshold: non_neg_integer() | :inf,
           start_time: Time.t()
         }
 
@@ -18,11 +18,16 @@ defmodule LabLive.Data.Timer do
 
   @doc """
   True if the timer has elapsed.
+
       iex> timer = LabLive.Data.Timer.new(0)
       iex> LabLive.Data.Timer.value(timer)
       true
 
       iex> timer = LabLive.Data.Timer.new(100_000_000)
+      iex> LabLive.Data.Timer.value(timer)
+      false
+
+      iex> timer = LabLive.Data.Timer.new(:inf)
       iex> LabLive.Data.Timer.value(timer)
       false
   """

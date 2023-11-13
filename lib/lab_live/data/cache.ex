@@ -50,16 +50,8 @@ defmodule LabLive.Data.Cache do
   @impl Data.Behaviour
   @spec update(t(), any()) :: t()
   def update(cache = %__MODULE__{}, value) do
-    new_cache = append_anyway(cache, value)
-
-    if cache.max_size == :inf do
-      new_cache
-    else
-      if new_cache.size > cache.max_size do
-        new_cache |> drop_oldest()
-      else
-        new_cache
-      end
+    with new_cache <- append_anyway(cache, value) do
+      if full?(cache), do: drop_oldest(new_cache), else: new_cache
     end
   end
 
@@ -157,5 +149,23 @@ defmodule LabLive.Data.Cache do
   @spec to_list(t()) :: list()
   def to_list(%__MODULE__{queue: queue}) do
     :queue.to_list(queue)
+  end
+
+  @doc """
+  True if the cache is full.
+
+      iex> cache = LabLive.Data.Cache.new(2)
+      iex> LabLive.Data.Cache.full?(cache)
+      false
+      iex> cache = LabLive.Data.Cache.update(cache, 1)
+      iex> LabLive.Data.Cache.full?(cache)
+      false
+      iex> cache = LabLive.Data.Cache.update(cache, 2)
+      iex> LabLive.Data.Cache.full?(cache)
+      true
+  """
+  @spec full?(t()) :: boolean()
+  def full?(%__MODULE__{size: size, max_size: max_size}) do
+    size >= max_size
   end
 end
