@@ -61,11 +61,6 @@ defmodule LabLive do
     end
   end
 
-  def time_id() do
-    Timex.now("Japan")
-    |> Timex.format!("{YY}{0M}{0D}_{0h24}{0m}{0s}")
-  end
-
   @spec start_many_data(many_data(), module()) :: [{Data.name(), on_start_data()}]
   def start_many_data(many_data, supervisor \\ LabLive.Data.Supervisor) do
     for {name, data_specs} <- many_data do

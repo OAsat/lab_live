@@ -21,7 +21,6 @@ defmodule LabLive.MixProject do
   defp deps do
     [
       {:erlport, "~> 0.11.0"},
-      {:timex, "~> 3.7"},
       {:telemetry, "~> 1.2"},
       {:kino, "~> 0.11.0"},
       {:kino_vega_lite, "~> 0.1.10"},
