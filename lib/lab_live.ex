@@ -89,7 +89,15 @@ defmodule LabLive do
       many_data
       |> Enum.filter(fn {_, specs} -> Keyword.get(specs, :visible?, true) end)
       |> Enum.map(fn {name, specs} ->
-        "|#{name}|#{specs[:label]}|#{LabLive.Data.get(name)}|"
+        value = LabLive.Data.get(name)
+
+        value_str =
+          case String.Chars.impl_for(value) do
+            nil -> inspect(value)
+            _ -> to_string(value)
+          end
+
+        "|#{name}|#{specs[:label]}|#{value_str}|"
       end)
       |> Enum.join("\n")
 
