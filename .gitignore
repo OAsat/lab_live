@@ -26,3 +26,5 @@ lab_live-*.tar
 /tmp/
 
 .vscode/
+
+.DS_Store
