@@ -6,23 +6,16 @@ defmodule LabLive.Instrument.Impl.Pyvisa do
 
   @impl Impl
   def init(opts) do
-    if not Keyword.has_key?(opts, :address) do
-      raise ":address option is required for #{__MODULE__}."
-    end
-
-    python = Keyword.get(opts, :python)
-    address = Keyword.get(opts, :address)
-    {:ok, python_pid} = start_python(python)
-    {python_pid, address}
+    {:ok, python_pid} = start_python(opts[:python])
+    {python_pid, opts[:address] || raise(":address option is required")}
   end
 
   @impl Impl
   def read(message, {python_pid, address}) do
-    answer =
-      :python.call(python_pid, :communicate, :query, [address, message])
-      |> to_string()
-
-    {answer, nil}
+    {
+      :python.call(python_pid, :communicate, :query, [address, message]) |> to_string(),
+      nil
+    }
   end
 
   @impl Impl
@@ -41,13 +34,11 @@ defmodule LabLive.Instrument.Impl.Pyvisa do
     :python.stop(python_pid)
   end
 
-  defp start_python(python_exec) do
-    case python_exec do
-      nil ->
-        :python.start_link(python_path: @python_src)
+  defp start_python(nil) do
+    :python.start_link(python_path: @python_src)
+  end
 
-      python_exec ->
-        :python.start_link(python_path: @python_src, python: to_charlist(python_exec))
-    end
+  defp start_python(python_exec) do
+    :python.start_link(python_path: @python_src, python: to_charlist(python_exec))
   end
 end

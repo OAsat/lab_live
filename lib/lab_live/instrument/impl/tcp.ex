@@ -6,9 +6,7 @@ defmodule LabLive.Instrument.Impl.Tcp do
 
   @impl Impl
   def init(opts) do
-    address = Keyword.get(opts, :address)
-    port = Keyword.get(opts, :port)
-    {address, port}
+    {List.to_tuple(opts[:address]), opts[:port]}
   end
 
   @impl Impl
