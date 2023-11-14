@@ -19,7 +19,6 @@ defmodule LabLive.Instrument.Port do
 
   @type opt() ::
           {:name, GenServer.name()}
-          | {:key, atom()}
           | {:sleep_after, non_neg_integer()}
           | {:type, impl()}
           | {atom(), any()}
@@ -75,8 +74,7 @@ defmodule LabLive.Instrument.Port do
 
   @spec start_link(opts()) :: GenServer.on_start()
   def start_link(opts) do
-    name = opts[:name]
-    GenServer.start_link(__MODULE__, opts, name: name)
+    GenServer.start_link(__MODULE__, opts, name: opts[:name])
   end
 
   defp execute_telemetry(event, query, answer, state) do

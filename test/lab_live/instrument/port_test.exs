@@ -10,7 +10,7 @@ defmodule LabLive.Instrument.PortTest do
 
   test "read/2" do
     check all(message <- string(:ascii)) do
-      LabLive.Instrument.PortMock
+      LabLive.Instrument.ImplMock
       |> expect(:init, fn [type: nil] -> :resource end)
       |> expect(:read, fn message, :resource -> {message, :after_read} end)
       |> expect(:after_reply, fn :after_read, :resource -> :ok end)
@@ -25,7 +25,7 @@ defmodule LabLive.Instrument.PortTest do
 
   test "write/2" do
     check all(message <- string(:ascii)) do
-      LabLive.Instrument.PortMock
+      LabLive.Instrument.ImplMock
       |> expect(:init, fn [type: nil] -> :resource end)
       |> expect(:read, 0, fn _, :resource -> {nil, :after_read} end)
       |> expect(:write, fn writer, :resource ->
@@ -42,7 +42,7 @@ defmodule LabLive.Instrument.PortTest do
   end
 
   test "reset/2" do
-    LabLive.Instrument.PortMock
+    LabLive.Instrument.ImplMock
     |> expect(:init, 2, fn [type: nil] -> :resource end)
     |> expect(:terminate, 2, fn :normal, :resource -> :ok end)
 
