@@ -2,6 +2,7 @@ defmodule LabLive do
   @moduledoc """
   Documentation for `LabLive`.
   """
+  # alias LabLive.Instrument
   alias LabLive.Data
   alias LabLive.Execution.Worker
 
@@ -144,4 +145,32 @@ defmodule LabLive do
       {:reset, _event} -> Worker.reset()
     end)
   end
+
+  # def render_controller() do
+  #   inst_labels =
+  #     PortManager.keys_and_pids()
+  #     |> Enum.map(fn {key, _pid} -> {key, "#{key}"} end)
+
+  #   form =
+  #     Kino.Control.form(
+  #       [
+  #         inst: Kino.Input.select("Instrument", inst_labels),
+  #         query: Kino.Input.text("Query"),
+  #         method: Kino.Input.select("Read/Write", read: "Read", write: "Write")
+  #       ],
+  #       submit: "Send"
+  #     )
+
+  #   Kino.listen(
+  #     form,
+  #     fn %{data: %{inst: inst, query: query, method: method}} ->
+  #       case method do
+  #         :read -> Instrument.read(inst, query <> "\n")
+  #         :write -> Instrument.write(inst, query <> "\n")
+  #       end
+  #     end
+  #   )
+
+  #   form
+  # end
 end

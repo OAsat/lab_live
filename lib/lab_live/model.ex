@@ -9,7 +9,7 @@ defmodule LabLive.Model do
   ```
   """
   defstruct name: "",
-            character: %{input_term: "\n", output_term: "\n", joiner: ","},
+            character: %{input_term: "\n", output_term: "\n", joiner: ";"},
             query: %{}
 
   alias LabLive.Model.Format

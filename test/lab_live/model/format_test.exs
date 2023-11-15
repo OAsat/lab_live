@@ -2,41 +2,13 @@ defmodule LabLive.Model.FormatTest do
   use ExUnit.Case
   use ExUnitProperties
   alias LabLive.Model.Format
+  import Test.Support.Format
 
   doctest Format
 
-  def query_stream(excluded \\ ["{", "}"]) do
-    str = filter(string(:ascii, max_length: 10), &(!String.contains?(&1, excluded)))
-    key = atom(:alphanumeric)
-    value = one_of([str, float(), integer()])
-    str_or_key = uniq_list_of(one_of([str, key]), max_length: 10)
-
-    bind(str_or_key, fn list ->
-      bind(list_of(value, length: length(only_atoms(list))), fn values ->
-        constant({list, only_atoms(list), values})
-      end)
-    end)
-  end
-
-  defp only_atoms(list) do
-    Enum.filter(list, &is_atom(&1))
-  end
-
   describe "format/2" do
     test "with properties" do
-      check all({list, keys, values} <- query_stream()) do
-        params = Enum.zip(keys, values)
-
-        format =
-          Enum.reduce(list, "", fn i, acc ->
-            if is_atom(i), do: acc <> "{{#{i}}}", else: acc <> i
-          end)
-
-        expected =
-          Enum.reduce(list, "", fn i, acc ->
-            if is_atom(i), do: acc <> "#{params[i]}", else: acc <> i
-          end)
-
+      check all({format, expected, params} <- input_stream()) do
         assert expected == Format.format(format, params)
       end
     end
@@ -54,33 +26,13 @@ defmodule LabLive.Model.FormatTest do
 
   describe "parse/2" do
     test "with properties" do
-      joiners = [",", ":", " ", "/", ";", "\\"] |> Enum.map(&constant(&1))
+      joiners = [",", ":", " ", "/", ";", "\\", "\r", "\n"] |> Enum.map(&constant(&1))
 
       check all(
               joiner <- one_of(joiners),
-              {list, keys, values} <- query_stream(["{", "}", joiner])
+              {format, example, params} <- output_stream(["{", "}"], joiner)
             ) do
-        params = Enum.zip(keys, values)
-
-        type = fn
-          str when is_binary(str) -> :str
-          float when is_float(float) -> :float
-          int when is_integer(int) -> :int
-        end
-
-        format =
-          for i <- list do
-            if is_atom(i), do: "{{#{i}:#{type.(params[i])}}}", else: i
-          end
-          |> Enum.join(joiner)
-
-        to_be_parsed =
-          for i <- list do
-            if is_atom(i), do: "#{params[i]}", else: i
-          end
-          |> Enum.join(joiner)
-
-        assert params == Format.parse(to_be_parsed, format)
+        assert params == Format.parse(example, format)
       end
     end
 

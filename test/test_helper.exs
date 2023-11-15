@@ -1,7 +1,5 @@
 ExUnit.start()
 
-Code.require_file("test/support/tcp_server.ex")
-
 defmodule LabLive.Instrument.FallbackImpl do
   @behaviour LabLive.Instrument.Impl
   def init(_opts), do: {:ok, nil}

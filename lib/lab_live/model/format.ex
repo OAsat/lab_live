@@ -57,13 +57,13 @@ defmodule LabLive.Model.Format do
     "#{out}#{List.last(format_peace)}"
   end
 
+  @doc false
   @spec extract_keys_and_types(binary()) :: Keyword.t()
-  defp extract_keys_and_types(format) do
+  def extract_keys_and_types(format) do
     Regex.scan(@regex, format)
     |> Enum.map(fn [_, pattern] -> split_key_and_type(pattern) end)
   end
 
-  @spec split_key_and_type(binary()) :: {atom(), atom()}
   defp split_key_and_type(key) do
     case String.split(key, ":") do
       [name, type] -> {String.to_atom(name), String.to_atom(type)}
@@ -71,7 +71,6 @@ defmodule LabLive.Model.Format do
     end
   end
 
-  @spec parse_func(:float | :int | :str) :: (binary() -> any())
   defp parse_func(type) do
     case type do
       :str -> & &1
