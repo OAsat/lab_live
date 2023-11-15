@@ -7,7 +7,7 @@ defmodule LabLive.Model.Format do
 
   @doc """
   Parses string to a map.
-      iex> import LabLive.Instrument.Model.Format
+      iex> import LabLive.Model.Format
       iex> parse("message:hello,12,3.4,end", "message:{{key1:str}},{{key2:int}},{{key3:float}},end")
       [key1: "hello", key2: 12, key3: 3.4]
   """
@@ -19,9 +19,14 @@ defmodule LabLive.Model.Format do
     |> Enum.map(fn {value, {key, type}} -> {key, parse_func(type).(value)} end)
   end
 
+  defp escape_special_characters(str) do
+    special_chars = ["\\", "*", "+", ".", "?", "[", "]", "(", ")", "^", "$", "|"]
+    Enum.reduce(special_chars, str, fn char, acc -> String.replace(acc, char, "\\#{char}") end)
+  end
+
   @spec format_to_regex(binary()) :: Regex.t()
   def format_to_regex(format) do
-    regex = String.replace(format, @regex, "(.+)")
+    regex = escape_special_characters(format) |> String.replace(@regex, "(.*)")
     ~r/#{regex}/
   end
 
@@ -35,7 +40,7 @@ defmodule LabLive.Model.Format do
   @doc """
   Formats a keyword list to string.
 
-      iex> import LabLive.Instrument.Model.Format
+      iex> import LabLive.Model.Format
       iex> format("message:{{key1}},{{key2}},{{key3}}:end", key1: "hello", key2: 12, key3: 3.4)
       "message:hello,12,3.4:end"
       iex> format("message")
