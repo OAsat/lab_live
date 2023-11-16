@@ -19,12 +19,8 @@ defmodule LabLive.Connection.Method.Tcp do
   def read(message, {address, port}) do
     socket = connect_and_send(message, address, port)
     {:ok, answer} = :gen_tcp.recv(socket, 0, 1000)
-    {answer, socket}
-  end
-
-  @impl Method
-  def after_reply(socket, _state) do
     :gen_tcp.close(socket)
+    answer
   end
 
   @impl Method

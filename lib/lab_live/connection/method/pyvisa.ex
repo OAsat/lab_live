@@ -17,15 +17,7 @@ defmodule LabLive.Connection.Method.Pyvisa do
 
   @impl Method
   def read(message, {python_pid, address}) do
-    {
-      :python.call(python_pid, :communicate, :query, [address, message]) |> to_string(),
-      nil
-    }
-  end
-
-  @impl Method
-  def after_reply(nil, _state) do
-    :ok
+    :python.call(python_pid, :communicate, :query, [address, message]) |> to_string()
   end
 
   @impl Method

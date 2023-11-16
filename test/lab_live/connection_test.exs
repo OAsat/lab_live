@@ -30,8 +30,7 @@ defmodule LabLive.ConnectionTest do
     check all(message <- string(:ascii)) do
       Connection.Method.Mock
       |> expect(:init, fn nil -> :resource end)
-      |> expect(:read, fn message, :resource -> {message, :after_read} end)
-      |> expect(:after_reply, fn :after_read, :resource -> :ok end)
+      |> expect(:read, fn message, :resource -> message end)
       |> expect(:terminate, fn :normal, :resource -> :ok end)
 
       {:ok, pid} = Connection.start_link(method: Connection.Method.Mock)

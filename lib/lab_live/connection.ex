@@ -63,11 +63,8 @@ defmodule LabLive.Connection do
 
   @impl GenServer
   def handle_call({:read, message}, from, %State{} = state) do
-    {answer, info} = state.method.read(message, state.resource)
-
+    answer = state.method.read(message, state.resource)
     GenServer.reply(from, answer)
-    :ok = state.method.after_reply(info, state.resource)
-
     execute_telemetry(:read, message, answer, state)
     sleep(state.sleep_after_reply)
     {:noreply, state}
@@ -76,7 +73,6 @@ defmodule LabLive.Connection do
   @impl GenServer
   def handle_cast({:write, message}, %State{} = state) do
     :ok = state.method.write(message, state.resource)
-
     execute_telemetry(:write, message, nil, state)
     sleep(state.sleep_after_reply)
     {:noreply, state}

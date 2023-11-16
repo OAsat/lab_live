@@ -15,15 +15,10 @@ defmodule LabLive.Connection.Method.Dummy do
   @impl Method
   def read(message, map) do
     case map[message] do
-      nil -> {"#{:rand.uniform()}", nil}
-      f when is_function(f, 0) -> {f.(), nil}
-      answer -> {answer, nil}
+      nil -> "#{:rand.uniform()}"
+      f when is_function(f, 0) -> f.()
+      answer -> answer
     end
-  end
-
-  @impl Method
-  def after_reply(nil, _map) do
-    :ok
   end
 
   @impl Method
