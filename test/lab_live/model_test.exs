@@ -2,9 +2,22 @@ defmodule LabLive.ModelTest do
   use ExUnit.Case
   use ExUnitProperties
   alias LabLive.Model
-  import Test.Support.Format
+  import Test.Support.QueryStream
 
   doctest Model
+
+  @lakeshore_json "test/support/models/lakeshore350.model.json"
+  @lakeshore_toml "test/support/models/lakeshore350.model.toml"
+
+  describe "loading from files" do
+    test "from_json_file/1" do
+      assert Lakeshore350.model() == Model.from_json_file(@lakeshore_json)
+    end
+
+    test "from_toml_file/1" do
+      assert Lakeshore350.model() == Model.from_toml_file(@lakeshore_toml)
+    end
+  end
 
   describe "format_input/3" do
     test "returns error with unknown key" do
@@ -18,7 +31,31 @@ defmodule LabLive.ModelTest do
               key <- atom(:alphanumeric)
             ) do
         model = %Model{query: %{key => %{input: format}}}
-        expected == Model.format_input(model, key, params)
+        assert expected <> model.character.input_term == Model.format_input(model, key, params)
+      end
+    end
+  end
+
+  describe "format_joined_input/2" do
+    test "returns formatted string" do
+      check all(input_map <- map_of(atom(:alphanumeric), input_stream())) do
+        {formats, queries, params} =
+          Enum.reduce(
+            input_map,
+            {%{}, [], []},
+            fn {key, {format, query, param}}, {formats, queries, params} ->
+              {
+                Map.put(formats, key, %{input: format}),
+                queries ++ [query],
+                params ++ [{key, param}]
+              }
+            end
+          )
+
+        model = %Model{query: formats}
+        expected = Enum.join(queries, model.character.joiner) <> model.character.input_term
+
+        assert expected == Model.format_joined_input(model, params)
       end
     end
   end

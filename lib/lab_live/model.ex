@@ -3,16 +3,45 @@ defmodule LabLive.Model do
   A module to define the format of communication with measurement instruments.
 
   ### Example
-  `lakeshore350.model.json`
+  #### `.ex` file
+  ```
+  #{File.read!("test/support/models/lakeshore350.ex")}
+  ```
+
+  #### `.json` file
   ```json
-  #{File.read!("test/support/lakeshore350.model.json")}
+  #{File.read!("test/support/models/lakeshore350.model.json")}
+  ```
+
+  #### `.toml` file
+  ```toml
+  #{File.read!("test/support/models/lakeshore350.model.toml")}
   ```
   """
   defstruct name: "",
             character: %{input_term: "\n", output_term: "\n", joiner: ";"},
             query: %{}
 
+  @type t() :: %__MODULE__{
+          name: String.t(),
+          character: %{input_term: String.t(), output_term: String.t(), joiner: String.t()},
+          query: queries()
+        }
+
+  @type queries() :: %{atom() => %{(:input | :output) => String.t()}}
+
   alias LabLive.Model.Format
+
+  def from_toml_file(path) do
+    File.read!(path)
+    |> from_toml()
+  end
+
+  def from_toml(toml) do
+    toml
+    |> Toml.decode!(keys: :atoms)
+    |> from_map()
+  end
 
   def from_json_file(path) do
     File.read!(path)
@@ -42,7 +71,7 @@ defmodule LabLive.Model do
       iex> LabLive.Model.format_input(model, :param2, val1: 1.2, val2: 3)
       {:error, :key_not_found}
 
-      iex> model = LabLive.Model.from_json_file("test/support/lakeshore350.model.json")
+      iex> model = Lakeshore350.model()
       iex> LabLive.Model.format_input(model, :pid, channel: 2, p: 100, i: 50, d: 0)
       "PID 2,100,50,0\\n"
   """
@@ -56,7 +85,7 @@ defmodule LabLive.Model do
   @doc """
   Returns a parser function for returned answer.
 
-      iex> model = LabLive.Model.from_json_file("test/support/lakeshore350.model.json")
+      iex> model = Lakeshore350.model()
       iex> parser = LabLive.Model.get_output_parser(model, :pid?)
       iex> parser.("100,50,0\\r\\n")
       %{p: 100.0, i: 50.0, d: 0.0}
@@ -92,7 +121,7 @@ defmodule LabLive.Model do
   @doc """
   Returns a input query for joined commands.
 
-      iex> model = LabLive.Model.from_json_file("test/support/lakeshore350.model.json")
+      iex> model = Lakeshore350.model()
       iex> LabLive.Model.format_joined_input(model,
       ...>   ramp: [channel: 1, binary: 0, kpermin: 0.5],
       ...>   setp: [channel: 1, kelvin: 300.0],
@@ -119,7 +148,7 @@ defmodule LabLive.Model do
   @doc """
   Returns a parser function for the answer of the joined commands.
 
-      iex> model = LabLive.Model.from_json_file("test/support/lakeshore350.model.json")
+      iex> model = Lakeshore350.model()
       iex> parser = LabLive.Model.get_joined_output_parser(model, [:ramp?, :heater?, :temp?, :temp?, :sensor?])
       iex> parser.("0,0.2;50.0;20.0;300.0;100.0\\r\\n")
       [ramp?: %{onoff: 0, kpermin: 0.2}, heater?: %{percentage: 50.0}, temp?: %{kelvin: 20.0}, temp?: %{kelvin: 300.0}, sensor?: %{ohm: 100.0}]
@@ -137,7 +166,7 @@ defmodule LabLive.Model do
   @doc """
   Returns a input query and parser function for joined commands.
 
-      iex> model = LabLive.Model.from_json_file("test/support/lakeshore350.model.json")
+      iex> model = Lakeshore350.model()
       iex> {query, parser} = LabLive.Model.get_joined_format_pair(model,
       ...>   ramp?: [channel: 1],
       ...>   heater?: [channel: 1],

@@ -2,9 +2,35 @@ defmodule LabLive.Model.FormatTest do
   use ExUnit.Case
   use ExUnitProperties
   alias LabLive.Model.Format
-  import Test.Support.Format
+  import Test.Support.QueryStream
 
   doctest Format
+
+  # TODO: Implement
+  test "extract_keys_and_types/1" do
+    check all(
+            query_components <- query_components(),
+            types <- list_of(type(), length: length(only_atoms(query_components)))
+          ) do
+      keys = only_atoms(query_components)
+      keys_and_types = Enum.zip(keys, types)
+
+      format =
+        query_components
+        |> Enum.map(fn i ->
+          with true <- is_atom(i),
+               nil <- keys_and_types[i] do
+            "{{#{i}}}"
+          else
+            false -> i
+            type -> "{{#{i}:#{type}}}"
+          end
+        end)
+        |> Enum.join()
+
+      assert keys_and_types == Format.extract_keys_and_types(format)
+    end
+  end
 
   describe "format/2" do
     test "with properties" do

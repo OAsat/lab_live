@@ -1,20 +1,38 @@
-defmodule Test.Support.Format do
+defmodule Test.Support.QueryStream do
   import StreamData
 
-  def str_or_key(excluded) do
-    str = filter(string(:ascii, max_length: 10), &(!String.contains?(&1, excluded)))
-    key = atom(:alphanumeric)
-    uniq_list_of(one_of([str, key]), max_length: 10)
+  defp str(excluded) do
+    filter(string(:ascii, max_length: 10), &(!String.contains?(&1, excluded)))
   end
 
-  # defp type, do: one_of([:str, :float, :int, nil])
+  defp key, do: atom(:alphanumeric)
+  def type, do: one_of([:str, :float, :int, nil] |> Enum.map(&constant(&1)))
 
-  # def gen_params(str_or_key) do
-  #   atoms = only_atoms(str_or_key)
-  #   bind(list_of(value, length: length(only_atoms(list))), fn values ->
-  #     constant({list, only_atoms(list), values})
-  #   end)
-  # end
+  def query_components(excluded \\ ["{", "}"]) do
+    uniq_list_of(one_of([str(excluded), key()]), max_length: 10)
+  end
+
+  def only_atoms(list), do: Enum.filter(list, &is_atom(&1))
+
+  def to_format(query_components, keys_and_types) do
+    query_components
+    |> Enum.map(fn i ->
+      with true <- is_atom(i),
+           nil <- keys_and_types[i] do
+        "{{#{i}}}"
+      else
+        false -> i
+        type -> "{{#{i}:#{type}}}"
+      end
+    end)
+    |> Enum.join()
+  end
+
+  # defp value(:str), do: str()
+  # defp value(:float), do: float()
+  # defp value(:int), do: integer()
+  # defp value(nil), do: one_of(value())
+  # defp type_and_value, do: bind(type(), fn t -> bind(value(t), fn v -> {t, v} end) end)
 
   def input_stream(excluded \\ ["{", "}"]) do
     map(query_stream(excluded), fn {str_or_key, keys, values} ->
@@ -33,20 +51,13 @@ defmodule Test.Support.Format do
   end
 
   defp query_stream(excluded) do
-    str = filter(string(:ascii, max_length: 10), &(!String.contains?(&1, excluded)))
-    key = atom(:alphanumeric)
-    value = one_of([str, float(), integer()])
-    str_or_key = uniq_list_of(one_of([str, key]), max_length: 10)
+    value = one_of([str(excluded), float(), integer()])
 
-    bind(str_or_key, fn list ->
+    bind(query_components(excluded), fn list ->
       bind(list_of(value, length: length(only_atoms(list))), fn values ->
         constant({list, only_atoms(list), values})
       end)
     end)
-  end
-
-  defp only_atoms(list) do
-    Enum.filter(list, &is_atom(&1))
   end
 
   defp to_input_format(str_or_key) do
