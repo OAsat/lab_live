@@ -1,16 +1,16 @@
-defmodule LabLive.Instrument.Impl.Dummy do
+defmodule LabLive.Connection.Method.Dummy do
   @moduledoc """
   Dummy instrument.
   """
-  alias LabLive.Instrument.Impl
-  @behaviour Impl
+  alias LabLive.Connection.Method
+  @behaviour Method
 
-  @impl Impl
+  @impl Method
   def init(opts) do
     opts[:dummy]
   end
 
-  @impl Impl
+  @impl Method
   def read(message, map) do
     case map[message] do
       nil -> {"#{:rand.uniform()}", nil}
@@ -19,12 +19,12 @@ defmodule LabLive.Instrument.Impl.Dummy do
     end
   end
 
-  @impl Impl
+  @impl Method
   def after_reply(nil, _map) do
     :ok
   end
 
-  @impl Impl
+  @impl Method
   def write(message, map) do
     if not Map.has_key?(map, message) do
       raise "Write message #{message} not expected."
@@ -33,7 +33,7 @@ defmodule LabLive.Instrument.Impl.Dummy do
     end
   end
 
-  @impl Impl
+  @impl Method
   def terminate(_reason, _map) do
     :ok
   end

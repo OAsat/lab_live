@@ -1,16 +1,19 @@
-defmodule LabLive.Instrument.Impl.Demo do
+defmodule LabLive.Instrument.Method.Demo do
   @moduledoc """
   Demo instrument.
   """
-  alias LabLive.Instrument.Impl
-  @behaviour Impl
+  alias LabLive.Connection.Method
+  @behaviour Method
 
-  @impl Impl
+  @type opt() :: {:dummy, any()}
+  @type opts() :: [opt()]
+
+  @impl Method
   def init(opts) do
     opts[:dummy]
   end
 
-  @impl Impl
+  @impl Method
   def read(message, map) do
     case map[message] do
       nil -> {"#{:rand.uniform()}", nil}
@@ -19,17 +22,17 @@ defmodule LabLive.Instrument.Impl.Demo do
     end
   end
 
-  @impl Impl
+  @impl Method
   def after_reply(nil, _map) do
     :ok
   end
 
-  @impl Impl
+  @impl Method
   def write(_message, _map) do
     :ok
   end
 
-  @impl Impl
+  @impl Method
   def terminate(_reason, _map) do
     :ok
   end

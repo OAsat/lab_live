@@ -1,16 +1,19 @@
-defmodule LabLive.Instrument.Impl.Pyvisa do
-  alias LabLive.Instrument.Impl
-  @behaviour Impl
+defmodule LabLive.Connection.Method.Pyvisa do
+  alias LabLive.Connection.Method
+  @behaviour Method
+
+  @type opt() :: {:python, String.t()} | {:address, String.t()}
+  @type opts() :: [opt()]
 
   @python_src File.cwd!() |> Path.join("python/lab_live_pyvisa") |> to_charlist()
 
-  @impl Impl
+  @impl Method
   def init(opts) do
     {:ok, python_pid} = start_python(opts[:python])
     {python_pid, opts[:address] || raise(":address option is required")}
   end
 
-  @impl Impl
+  @impl Method
   def read(message, {python_pid, address}) do
     {
       :python.call(python_pid, :communicate, :query, [address, message]) |> to_string(),
@@ -18,18 +21,18 @@ defmodule LabLive.Instrument.Impl.Pyvisa do
     }
   end
 
-  @impl Impl
+  @impl Method
   def after_reply(nil, _state) do
     :ok
   end
 
-  @impl Impl
+  @impl Method
   def write(message, {python_pid, address}) do
     :python.call(python_pid, :communicate, :write, [address, message])
     :ok
   end
 
-  @impl Impl
+  @impl Method
   def terminate(_reason, {python_pid, _address}) do
     :python.stop(python_pid)
   end

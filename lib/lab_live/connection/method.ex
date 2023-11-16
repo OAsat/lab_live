@@ -1,4 +1,4 @@
-defmodule LabLive.Instrument.Impl do
+defmodule LabLive.Connection.Method do
   @callback init(opts :: any()) :: resource :: any()
   @callback read(message :: binary(), resource :: any()) :: {answer :: binary(), info :: any()}
   @callback after_reply(info :: any(), resource :: any()) :: :ok
