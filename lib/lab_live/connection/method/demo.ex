@@ -1,7 +1,6 @@
 defmodule LabLive.Instrument.Method.Demo do
-  @moduledoc """
-  Demo instrument.
-  """
+  @moduledoc false
+
   alias LabLive.Connection.Method
   @behaviour Method
 

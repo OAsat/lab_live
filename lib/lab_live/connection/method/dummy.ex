@@ -1,9 +1,11 @@
 defmodule LabLive.Connection.Method.Dummy do
-  @moduledoc """
-  Dummy instrument.
-  """
+  @moduledoc false
+
   alias LabLive.Connection.Method
   @behaviour Method
+
+  @type opt() :: {:dummy, any()}
+  @type opts() :: [opt()]
 
   @impl Method
   def init(opts) do

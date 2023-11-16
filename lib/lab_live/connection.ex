@@ -3,12 +3,12 @@ defmodule LabLive.Connection do
   Sever to connect to an instrument.
   """
   use GenServer
-  alias LabLive.Instrument.Impl
+  alias LabLive.Connection.Method
 
   @type resource() :: any()
   @type sleep_after_reply() :: non_neg_integer() | nil
-  @type method() :: Impl.Pyvisa | Impl.Tcp | Impl.Dummy
-  @type method_opts() :: Impl.Pyvisa.opts() | Impl.Tcp.opts() | Impl.Dummy.opts()
+  @type method() :: Method.Pyvisa | Method.Tcp | Method.Dummy
+  @type method_opts() :: Method.Pyvisa.opts() | Method.Tcp.opts() | Method.Dummy.opts()
 
   defmodule State do
     @moduledoc false
