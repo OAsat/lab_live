@@ -13,7 +13,7 @@ defmodule LabLive.Instrument.PortManagerTest do
   end
 
   describe "port manager starts with application" do
-    test "prod env supervisors are started" do
+    test "supervisors are started" do
       assert nil != Process.whereis(LabLive.Instrument.PortManager)
       assert nil != Process.whereis(LabLive.Instrument.PortManager.Registry)
       assert nil != Process.whereis(LabLive.Instrument.PortManager.Supervisor)

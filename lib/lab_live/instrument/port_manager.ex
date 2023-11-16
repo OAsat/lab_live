@@ -3,20 +3,16 @@ defmodule LabLive.Instrument.PortManager do
   Supervisor to manage instrument ports by keys.
   """
   alias LabLive.Instrument.Port
-  alias LabLive.Instrument.Model
   use Supervisor
 
-  @type opt() ::
-          {:model, Model.t()}
-          | {:type, LabLive.Instrument.Port.impl()}
-          | LabLive.Instrument.Port.opt()
-
-  @type info() :: %{model: Model.t()}
-  @type opts() :: [opt()]
+  @type manager() :: __MODULE__ | module() | atom()
+  @type opts() :: [name: manager()]
+  @type port_key() :: atom()
+  @type port_info() :: any()
   @type on_start_instrument() :: {:ok, pid()} | {:reset, pid()} | {:error, term()}
 
   @impl Supervisor
-  def init(name \\ __MODULE__) do
+  def init(name) do
     children = [
       {DynamicSupervisor,
        name: supervisor(name),
@@ -36,21 +32,28 @@ defmodule LabLive.Instrument.PortManager do
     :"#{name}.Registry"
   end
 
+  @spec start_link(opts()) :: Supervisor.on_start()
   def start_link(opts) do
-    Supervisor.start_link(__MODULE__, opts[:name], opts)
+    name = opts[:name] || __MODULE__
+    Supervisor.start_link(__MODULE__, name, name: name)
   end
 
-  @spec start_instrument(name :: atom(), key :: atom(), info :: info(), opts :: opts()) ::
+  @spec start_instrument(
+          manager :: manager(),
+          port_key :: port_key(),
+          port_info :: port_info(),
+          port_opts :: Port.opts()
+        ) ::
           on_start_instrument()
-  def start_instrument(name \\ __MODULE__, key, info, opts) do
-    via = via_name(name, key, info)
+  def start_instrument(manager \\ __MODULE__, port_key, port_info, port_opts) do
+    via = via_name(manager, port_key, port_info)
 
-    case DynamicSupervisor.start_child(supervisor(name), {Port, [{:name, via} | opts]}) do
+    case DynamicSupervisor.start_child(supervisor(manager), {Port, [{:name, via} | port_opts]}) do
       {:ok, pid} ->
         {:ok, pid}
 
       {:error, {:already_started, pid}} ->
-        Port.reset(pid, opts)
+        Port.reset(pid, port_opts)
         {:reset, pid}
 
       {:error, reason} ->
@@ -58,32 +61,33 @@ defmodule LabLive.Instrument.PortManager do
     end
   end
 
-  @spec lookup(atom()) :: {pid(), info()}
-  def lookup(name \\ __MODULE__, inst) do
-    case Registry.lookup(registry(name), inst) do
-      [] -> raise "Instrument #{inst} not found."
-      [{pid, model}] -> {pid, model}
+  @spec lookup(manager(), port_key()) :: {pid(), port_info()}
+  def lookup(manager \\ __MODULE__, port_key) do
+    case Registry.lookup(registry(manager), port_key) do
+      [] -> raise "Instrument #{port_key} not found."
+      [{pid, info}] -> {pid, info}
     end
   end
 
-  @spec pid(atom()) :: pid()
-  def pid(name \\ __MODULE__, inst) do
-    lookup(name, inst) |> elem(0)
+  @spec pid(manager(), port_key()) :: pid()
+  def pid(manager \\ __MODULE__, port_key) do
+    lookup(manager, port_key) |> elem(0)
   end
 
-  @spec info(atom()) :: info()
-  def info(name \\ __MODULE__, inst) do
-    lookup(name, inst) |> elem(1)
+  @spec info(manager(), port_key()) :: port_info()
+  def info(manager \\ __MODULE__, port_key) do
+    lookup(manager, port_key) |> elem(1)
   end
 
-  defp via_name(name, key, info) do
-    {:via, Registry, {registry(name), key, info}}
+  defp via_name(manager, port_key, port_info) do
+    {:via, Registry, {registry(manager), port_key, port_info}}
   end
 
-  def keys_and_pids(name \\ __MODULE__) do
-    Supervisor.which_children(supervisor(name))
+  @spec keys_and_pids(manager()) :: %{port_key() => pid()}
+  def keys_and_pids(manager \\ __MODULE__) do
+    Supervisor.which_children(supervisor(manager))
     |> Enum.map(fn {_, pid, _, _} ->
-      key = Registry.keys(registry(name), pid) |> List.first()
+      key = Registry.keys(registry(manager), pid) |> List.first()
       {key, pid}
     end)
     |> Enum.into(%{})
