@@ -1,15 +1,19 @@
 defmodule LabLive.Connection.Method.TcpTest do
   alias LabLive.Connection.Method.Tcp
+  alias LabLive.Connection
   use ExUnit.Case
   doctest Tcp
 
-  test "tcp" do
+  test "read/2" do
     port = 8202
-    {:ok, pid} = TestTcpServer.start_task(port)
-    {answer, socket} = Tcp.read("Hello.", {~c"localhost", port})
-    Tcp.after_reply(socket, nil)
-    assert answer == "Hello."
+    {:ok, server} = TestTcpServer.start_task(port)
 
-    Process.exit(pid, :normal)
+    opts = [address: [0, 0, 0, 0], port: 8202]
+    {:ok, client} = start_supervised({Connection, method: Tcp, method_opts: opts})
+
+    message = "Hello."
+    assert ^message = Connection.read(client, message)
+
+    Process.exit(server, :normal)
   end
 end
