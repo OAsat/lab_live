@@ -9,13 +9,20 @@ defmodule LabLive.ModelTest do
   @lakeshore_json "test/support/models/lakeshore350.model.json"
   @lakeshore_toml "test/support/models/lakeshore350.model.toml"
 
-  describe "loading from files" do
+  describe "loading LakeShore350 sample files" do
     test "from_json_file/1" do
       assert Lakeshore350.model() == Model.from_json_file(@lakeshore_json)
     end
 
     test "from_toml_file/1" do
       assert Lakeshore350.model() == Model.from_toml_file(@lakeshore_toml)
+    end
+  end
+
+  describe "loading mercury sample files" do
+    test "toml is valid" do
+      file = "test/support/models/oxford_mercury_itc.model.toml"
+      assert %Model{} = Model.from_toml_file(file)
     end
   end
 

@@ -43,10 +43,15 @@ defmodule LabLive.ConnectionManager do
     Supervisor.start_link(__MODULE__, name, name: name)
   end
 
-  @spec start_instrument(manager :: manager(), key :: key(), opts :: connection_opts()) ::
+  @spec start_instrument(
+          manager :: manager(),
+          key :: key(),
+          info :: info(),
+          opts :: connection_opts()
+        ) ::
           on_start_instrument()
-  def start_instrument(manager \\ __MODULE__, key, connection_opts) do
-    via = via_name(manager, key, connection_opts)
+  def start_instrument(manager \\ __MODULE__, key, info, connection_opts) do
+    via = via_name(manager, key, info)
 
     case DynamicSupervisor.start_child(
            supervisor(manager),

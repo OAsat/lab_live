@@ -90,7 +90,7 @@ defmodule LabLive.Connection do
     %State{
       name: opts[:name],
       resource: method.init(opts[:method_opts]),
-      method: Application.get_env(:lab_live, :method, method),
+      method: method,
       sleep_after_reply: opts[:sleep_after_reply]
     }
   end

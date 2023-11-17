@@ -9,4 +9,3 @@ defmodule LabLive.Connection.Method.Fallback do
 end
 
 Mox.defmock(LabLive.Connection.Method.Mock, for: LabLive.Connection.Method)
-Application.put_env(:lab_live, :inst_type, LabLive.Connection.Method.Mock)

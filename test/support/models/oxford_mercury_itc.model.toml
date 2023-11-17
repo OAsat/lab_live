@@ -1,0 +1,54 @@
+name = "Oxford Mercury iTC"
+
+[character]
+write_termination = "\n"
+read_termination = "\n"
+joiner = ";"
+
+[query.rampon]
+input = "SET:DEV:MB1.T1:TEMP:LOOP:RENA:ON"
+output = "SET:DEV:MB1.T1:TEMP:LOOP:RENA:VALID"
+
+[query.rampoff]
+input = "SET:DEV:MB1.T1:TEMP:LOOP:RENA:OFF"
+output = "SET:DEV:MB1.T1:TEMP:LOOP:RENA:VALID"
+
+[query."ramprate?"]
+input = "READ:DEV:MB1.T1:TEMP:LOOP:RSET"
+output = "STAT:DEV:MB1.T1:TEMP:LOOP:RSET:{{kpermin:float}}K/m"
+
+[query.ramprate]
+input = "SET:DEV:MB1.T1:TEMP:LOOP:RSET:{{kpermin}}"
+output = "STAT:SET:DEV:MB1.T1:TEMP:LOOP:RSET:VALID"
+
+[query."temp?"]
+input = "READ:DEV:MB1.T1:TEMP:SIG:TEMP"
+output = "STAT:DEV:MB1.T1:TEMP:SIG:TEMP:{{kelvin:float}}K"
+
+[query."temp_setp?"]
+input = "READ:DEV:MB1.T1:TEMP:LOOP:TSET"
+output = "STAT:DEV:MB1.T1:TEMP:LOOP:TSET:{{kelvin}}K"
+
+[query.temp_setp]
+input = "SET:DEV:MB1.T1:TEMP:LOOP:TSET:{{kelvin}}"
+output = "STAT:SET:DEV:MB1.T1:TEMP:LOOP:TSET:VALID"
+
+[query."pres?"]
+input = "READ:DEV:MB1.T1:PRES:SIG:PRES"
+output = "STAT:DEV:MB1.T1:PRES:SIG:PRES:{{mbar}}mB"
+
+[query."pres_setp?"]
+input = "READ:DEV:DB5.P1:TEMP:LOOP:TSET"
+output = "STAT:DEV:DB5.P1:TEMP:LOOP:TSET:{{mbar:float}}mB"
+
+[query.pres_setp]
+input = "SET:DEV:DB5.P1:TEMP:LOOP:TSET:{{mbar}}"
+output = "STAT:SET:DEV:DB5.P1:TEMP:LOOP:TSET:VALID"
+
+[query.pres_auto]
+input = "SET:DEV:DB5.P1:TEMP:LOOP:FAUT:ON"
+output = "STAT:SET:DEV:DB5.P1:TEMP:LOOP:FAUT:VALID"
+
+[query.pres_manual]
+input = "SET:DEV:DB5.P1:TEMP:LOOP:FAUT:OFF"
+output = "STAT:SET:DEV:DB5.P1:TEMP:LOOP:FAUT:VALID"

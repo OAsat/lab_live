@@ -32,6 +32,13 @@ defmodule LabLive.Model do
 
   alias LabLive.Model.Format
 
+  def from_file(path) do
+    case Path.extname(path) do
+      ".json" -> from_json_file(path)
+      ".toml" -> from_toml_file(path)
+    end
+  end
+
   def from_toml_file(path) do
     File.read!(path)
     |> from_toml()
@@ -89,9 +96,8 @@ defmodule LabLive.Model do
       iex> parser = LabLive.Model.get_output_parser(model, :pid?)
       iex> parser.("100,50,0\\r\\n")
       %{p: 100.0, i: 50.0, d: 0.0}
-      iex> parser = LabLive.Model.get_output_parser(model, :pid)
-      iex> parser.(nil)
-      %{}
+      iex> LabLive.Model.get_output_parser(model, :pid)
+      nil
       iex> LabLive.Model.get_output_parser(model, :_pid)
       {:error, :key_not_found}
 
@@ -114,7 +120,7 @@ defmodule LabLive.Model do
         end
 
       %{} ->
-        fn _ -> %{} end
+        nil
     end
   end
 

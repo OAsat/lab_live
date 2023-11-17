@@ -29,7 +29,8 @@ defmodule LabLive.ConnectionManagerTest do
 
       start_supervised({ConnectionManager, name: test_name})
       opts = [method: Method.Mock]
-      {:ok, pid} = ConnectionManager.start_instrument(test_name, :inst, opts)
+      info = :info
+      {:ok, pid} = ConnectionManager.start_instrument(test_name, :inst, info, opts)
       assert :ok = GenServer.stop(pid, :normal)
     end
 
@@ -40,8 +41,9 @@ defmodule LabLive.ConnectionManagerTest do
 
       start_supervised({ConnectionManager, name: test_name})
       opts = [method: Method.Mock]
-      {:ok, pid} = ConnectionManager.start_instrument(test_name, :inst, opts)
-      {:reset, ^pid} = ConnectionManager.start_instrument(test_name, :inst, opts)
+      info = :info
+      {:ok, pid} = ConnectionManager.start_instrument(test_name, :inst, info, opts)
+      {:reset, ^pid} = ConnectionManager.start_instrument(test_name, :inst, info, opts)
       assert :ok = GenServer.stop(pid, :normal)
     end
 
@@ -49,9 +51,10 @@ defmodule LabLive.ConnectionManagerTest do
       start_supervised({ConnectionManager, name: test_name})
       key = :inst
       opts = [method: Method.Fallback]
-      {:ok, pid} = ConnectionManager.start_instrument(test_name, key, opts)
-      assert {^pid, ^opts} = ConnectionManager.lookup(test_name, key)
-      assert opts == ConnectionManager.info(test_name, key)
+      info = :info
+      {:ok, pid} = ConnectionManager.start_instrument(test_name, key, info, opts)
+      assert {^pid, ^info} = ConnectionManager.lookup(test_name, key)
+      assert info == ConnectionManager.info(test_name, key)
       assert ^pid = ConnectionManager.pid(test_name, key)
     end
 
@@ -66,9 +69,10 @@ defmodule LabLive.ConnectionManagerTest do
     test "keys_and_pids/1", %{test: test_name} do
       start_supervised({ConnectionManager, name: test_name})
       opts = [method: Method.Fallback]
-      {:ok, pid1} = ConnectionManager.start_instrument(test_name, :inst1, opts)
-      {:ok, pid2} = ConnectionManager.start_instrument(test_name, :inst2, opts)
-      {:ok, pid3} = ConnectionManager.start_instrument(test_name, :inst3, opts)
+      info = :info
+      {:ok, pid1} = ConnectionManager.start_instrument(test_name, :inst1, info, opts)
+      {:ok, pid2} = ConnectionManager.start_instrument(test_name, :inst2, info, opts)
+      {:ok, pid3} = ConnectionManager.start_instrument(test_name, :inst3, info, opts)
 
       assert %{inst1: ^pid1, inst2: ^pid2, inst3: ^pid3} =
                ConnectionManager.keys_and_pids(test_name)
