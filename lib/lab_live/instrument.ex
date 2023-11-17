@@ -30,14 +30,14 @@ defmodule LabLive.Instrument do
     opts = [
       sleep_after_reply: specs[:sleep_after_reply],
       method: map_method(method),
-      method_opts: specs[method] |> Map.to_list()
+      method_opts: specs[method] || [model: specs[:model]]
     ]
 
     model = %{model: specs[:model]}
     ConnectionManager.start_instrument(manager, key, model, opts)
   end
 
-  def start_instruments(manager \\ ConnectionManager, specs_map, connections \\ []) do
+  def start_instruments(manager \\ ConnectionManager, specs_map, connections) do
     for {inst_key, method} <- connections do
       {inst_key, start_instrument(manager, inst_key, :"#{method}", specs_map[inst_key])}
     end
