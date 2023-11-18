@@ -1,6 +1,4 @@
 defmodule LabLive.Connection.Method.Tcp do
-  @moduledoc false
-
   alias LabLive.Connection.Method
   @behaviour Method
 

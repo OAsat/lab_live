@@ -1,6 +1,4 @@
 defmodule LabLive.Connection.Method.Pyvisa do
-  @moduledoc false
-
   alias LabLive.Connection.Method
   @behaviour Method
 

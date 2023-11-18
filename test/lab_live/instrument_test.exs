@@ -41,7 +41,7 @@ defmodule LabLive.InstrumentTest do
       start_supervised({LabLive.ConnectionManager, name: test_name})
 
       Method.Mock
-      |> expect(:init, fn [] -> :resource end)
+      |> expect(:init, fn %{} -> :resource end)
       |> stub(:terminate, fn _reason, _resource -> :ok end)
 
       instruments = %{inst1: %{Method.Mock => %{}}}
@@ -55,7 +55,7 @@ defmodule LabLive.InstrumentTest do
     start_supervised({LabLive.ConnectionManager, name: test_name})
 
     Method.Mock
-    |> expect(:init, fn [] -> :resource end)
+    |> expect(:init, fn %{} -> :resource end)
     |> expect(:read, fn "hello", :resource -> "goodbye" end)
     |> expect(:read, fn "goodbye", :resource -> "hello" end)
     |> stub(:terminate, fn _reason, _resource -> :ok end)
@@ -74,7 +74,7 @@ defmodule LabLive.InstrumentTest do
     start_supervised({LabLive.ConnectionManager, name: test_name})
 
     Method.Mock
-    |> expect(:init, fn [] -> :resource end)
+    |> expect(:init, fn %{} -> :resource end)
     |> expect(:write, fn "hello", :resource -> :ok end)
     |> stub(:terminate, fn _reason, _resource -> :ok end)
 
@@ -91,7 +91,7 @@ defmodule LabLive.InstrumentTest do
     start_supervised({LabLive.ConnectionManager, name: test_name})
 
     Method.Mock
-    |> expect(:init, fn [] -> :resource end)
+    |> expect(:init, fn %{} -> :resource end)
     |> expect(:read, fn "PID? 1\n", :resource -> "100,50,0\r\n" end)
     |> expect(:write, fn "PID 1,50,25,0\n", :resource -> :ok end)
     |> expect(:read, fn "KRDG? 2\n", :resource -> "12.34\r\n" end)
