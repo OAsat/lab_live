@@ -2,6 +2,8 @@ defmodule LabLive.ConnectionManagerTest do
   use ExUnit.Case
   alias LabLive.ConnectionManager
   alias LabLive.Connection.Method
+  alias Method.Mock
+  alias Method.Fallback
   doctest ConnectionManager
   import Mox
 
@@ -9,7 +11,7 @@ defmodule LabLive.ConnectionManagerTest do
   setup :verify_on_exit!
 
   setup do
-    stub_with(Method.Mock, Method.Fallback)
+    stub_with(Mock, Fallback)
     :ok
   end
 
@@ -34,16 +36,28 @@ defmodule LabLive.ConnectionManagerTest do
       assert :ok = GenServer.stop(pid, :normal)
     end
 
-    test "port resets on second start_instrument/4", %{test: test_name} do
+    test "connection opts reset on second start_instrument/4", %{test: test_name} do
       Method.Mock
-      |> expect(:init, 2, fn _ -> :resource end)
+      |> expect(:init, fn "first" -> :resource end)
+      |> expect(:init, fn "second" -> :resource end)
       |> expect(:terminate, 2, fn :normal, :resource -> :ok end)
 
       start_supervised({ConnectionManager, name: test_name})
-      opts = [method: Method.Mock]
-      info = :info
-      {:ok, pid} = ConnectionManager.start_instrument(test_name, :inst, info, opts)
-      {:reset, ^pid} = ConnectionManager.start_instrument(test_name, :inst, info, opts)
+
+      {:ok, pid} =
+        ConnectionManager.start_instrument(test_name, :inst, "info1",
+          method: Method.Mock,
+          method_opts: "first"
+        )
+
+      {:reset, ^pid} =
+        ConnectionManager.start_instrument(test_name, :inst, "info2",
+          method: Method.Mock,
+          method_opts: "second"
+        )
+
+      # TODO fix: The info is not updated. The registry value can only be updated from the Connection process.
+      assert "info1" == ConnectionManager.info(test_name, :inst)
       assert :ok = GenServer.stop(pid, :normal)
     end
 
