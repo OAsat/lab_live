@@ -43,7 +43,21 @@ defmodule LabLive.Instrument do
     end
   end
 
-  def query(manager \\ ConnectionManager, inst_key, query_key, query_params) do
+  def query(inst_key, query_key) do
+    query(inst_key, query_key, [])
+  end
+
+  def query(inst_key, query_key, query_params)
+      when is_atom(query_key) and is_list(query_params) do
+    query(ConnectionManager, inst_key, query_key, query_params)
+  end
+
+  def query(manager, inst_key, query_key) when is_atom(query_key) do
+    query(manager, inst_key, query_key, [])
+  end
+
+  def query(manager, inst_key, query_key, query_params)
+      when is_atom(inst_key) and is_atom(query_key) and is_list(query_params) do
     {pid, %{model: model}} = ConnectionManager.lookup(manager, inst_key)
 
     case Model.get_format_pair(model, query_key, query_params) do
@@ -55,11 +69,62 @@ defmodule LabLive.Instrument do
     end
   end
 
-  def read(manager \\ ConnectionManager, inst_key, message) do
+  def read(inst_key, query_key) when is_atom(query_key) do
+    read(inst_key, query_key, [])
+  end
+
+  def read(inst_key, query_key, query_params) when is_atom(query_key) and is_list(query_params) do
+    query(ConnectionManager, inst_key, query_key, query_params)
+  end
+
+  def read(manager, inst_key, query_key) when is_atom(query_key) do
+    read(manager, inst_key, query_key, [])
+  end
+
+  def read(manager, inst_key, query_key, query_params)
+      when is_atom(query_key) and is_list(query_params) do
+    {pid, %{model: model}} = ConnectionManager.lookup(manager, inst_key)
+    {input, parser} = Model.get_format_pair(model, query_key, query_params)
+    Connection.read(pid, input) |> parser.()
+  end
+
+  def read_joined(manager \\ ConnectionManager, inst_key, keys_and_params) do
+    {pid, %{model: model}} = ConnectionManager.lookup(manager, inst_key)
+    {input, parser} = Model.get_joined_format_pair(model, keys_and_params)
+    Connection.read(pid, input) |> parser.()
+  end
+
+  def write(inst_key, query_key) when is_atom(query_key) do
+    write(inst_key, query_key, [])
+  end
+
+  def write(inst_key, query_key, query_params)
+      when is_atom(query_key) and is_list(query_params) do
+    query(ConnectionManager, inst_key, query_key, query_params)
+  end
+
+  def write(manager, inst_key, query_key) when is_atom(query_key) do
+    write(manager, inst_key, query_key, [])
+  end
+
+  def write(manager, inst_key, query_key, query_params)
+      when is_atom(query_key) and is_list(query_params) do
+    {pid, %{model: model}} = ConnectionManager.lookup(manager, inst_key)
+    {input, _} = Model.get_format_pair(model, query_key, query_params)
+    :ok = Connection.write(pid, input)
+  end
+
+  def write_joined(manager \\ ConnectionManager, inst_key, keys_and_params) do
+    {pid, %{model: model}} = ConnectionManager.lookup(manager, inst_key)
+    {input, _} = Model.get_joined_format_pair(model, keys_and_params)
+    :ok = Connection.write(pid, input)
+  end
+
+  def read_text(manager \\ ConnectionManager, inst_key, message) when is_binary(message) do
     ConnectionManager.pid(manager, inst_key) |> Connection.read(message)
   end
 
-  def write(manager \\ ConnectionManager, inst_key, message) do
+  def write_text(manager \\ ConnectionManager, inst_key, message) when is_binary(message) do
     ConnectionManager.pid(manager, inst_key) |> Connection.write(message)
   end
 end
