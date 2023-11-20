@@ -26,3 +26,8 @@ lab_live-*.tar
 /tmp/
 
 .vscode/
+
+.DS_Store
+
+# dot graph
+xref_graph.dot

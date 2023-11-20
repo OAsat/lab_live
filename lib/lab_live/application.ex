@@ -6,7 +6,7 @@ defmodule LabLive.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      LabLive.Instrument.PortManager,
+      LabLive.ConnectionManager,
       LabLive.Execution.Supervisor,
       {DynamicSupervisor, strategy: :one_for_one, name: LabLive.Data.Supervisor}
     ]

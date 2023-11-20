@@ -2,6 +2,7 @@ defmodule LabLive do
   @moduledoc """
   Documentation for `LabLive`.
   """
+  # alias LabLive.Instrument
   alias LabLive.Data
   alias LabLive.Execution.Worker
 
