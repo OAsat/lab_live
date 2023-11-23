@@ -19,10 +19,14 @@ defmodule LabLive.Connection.Method.Dummy do
   end
 
   def read(message, {%Model{} = model, random?}) do
-    case message |> String.replace(model.character.input_term, "") |> find_key(model) do
-      {_, %{output: output}} -> dummy_output(output, random?) <> model.character.output_term
-      _ -> ""
-    end
+    answer =
+      message
+      |> String.replace(model.character.input_term, "")
+      |> String.split(model.character.joiner)
+      |> Enum.map(fn msg -> dummy_from_model(msg, model, random?) end)
+      |> Enum.join(model.character.joiner)
+
+    answer <> model.character.output_term
   end
 
   @impl Method
@@ -33,6 +37,13 @@ defmodule LabLive.Connection.Method.Dummy do
   @impl Method
   def terminate(_reason, _state) do
     :ok
+  end
+
+  defp dummy_from_model(message, model, random?) do
+    case message |> find_key(model) do
+      {_, %{output: output}} -> dummy_output(output, random?)
+      _ -> ""
+    end
   end
 
   defp find_key(query, model) do
