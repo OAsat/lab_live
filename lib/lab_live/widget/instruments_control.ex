@@ -4,6 +4,7 @@ defmodule LabLive.Widget.InstrumentsControl do
   alias LabLive.ConnectionManager
   alias LabLive.Model
   alias LabLive.Model.Format
+  alias LabLive.Instrument
 
   @impl true
   def init(nil, ctx) do
@@ -11,7 +12,8 @@ defmodule LabLive.Widget.InstrumentsControl do
       assign(ctx,
         models: models(),
         instrument: "",
-        query: ""
+        query_key: "",
+        answer: ""
       )
 
     {:ok, ctx, reevaluate_on_change: true}
@@ -22,10 +24,32 @@ defmodule LabLive.Widget.InstrumentsControl do
     payload = %{
       models: ctx.assigns.models,
       instrument: ctx.assigns.instrument,
-      query: ctx.assigns.query
+      query_key: ctx.assigns.query_key,
+      answer: ctx.assigns.answer
     }
 
     {:ok, payload, ctx}
+  end
+
+  @impl true
+  def handle_event("send_query", %{"instrument" => ""}, ctx) do
+    {:noreply, ctx}
+  end
+
+  def handle_event("send_query", %{"query_key" => ""}, ctx) do
+    {:noreply, ctx}
+  end
+
+  def handle_event(
+        "send_query",
+        %{"instrument" => instrument, "query_key" => query_key, "params" => params},
+        ctx
+      ) do
+    param_values = for {key, %{value: value}} <- params, do: {:"#{key}", value}
+    answer = Instrument.query(:"#{instrument}", :"#{query_key}", param_values) |> Kernel.inspect()
+    ctx = assign(ctx, answer: answer)
+    broadcast_event(ctx, "update_answer", answer)
+    {:noreply, ctx}
   end
 
   def new() do
@@ -43,9 +67,13 @@ defmodule LabLive.Widget.InstrumentsControl do
 
   defp model_to_map(%Model{} = model) do
     for {key, %{input: input}} <- model.query do
-      params = Format.extract_keys_and_types(input) |> Keyword.keys()
-      {key, params}
+      {key, input_format_to_map_list(input)}
     end
     |> Enum.into(%{})
+  end
+
+  defp input_format_to_map_list(input) do
+    Format.extract_keys_and_types(input)
+    |> Enum.map(fn {key, type} -> %{key: key, type: type, value: ""} end)
   end
 end
