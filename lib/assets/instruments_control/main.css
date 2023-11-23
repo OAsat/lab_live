@@ -226,21 +226,6 @@ input[type="number"] {
   background-color: var(--gray-100);
 }
 
-.send-button {
-  padding: 0.5rem 1.25rem;
-  color: var(--blue-600);
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  font-weight: 500;
-  white-space: nowrap;
-  border-radius: 0.5rem;
-  border-width: 1px;
-  border-color: transparent;
-  margin-right: 18px;
-  margin-bottom: 6px;
-  background-color: var(--gray-50);
-}
-
 .button:hover {
   cursor: pointer;
   background-color: var(--gray-300);
