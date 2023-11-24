@@ -51,28 +51,33 @@ defmodule LabLive.ConnectionManager do
         ) ::
           on_start_instrument()
   def start_instrument(manager \\ __MODULE__, key, info, connection_opts) do
-    via = via_name(manager, key, info)
-
-    case DynamicSupervisor.start_child(
-           supervisor(manager),
-           {Connection, [{:name, via} | connection_opts]}
-         ) do
+    case start_supervised_instrument(manager, key, info, connection_opts) do
       {:ok, pid} ->
         {:ok, pid}
 
       {:error, {:already_started, pid}} ->
-        Connection.reset(pid, connection_opts)
-        {:reset, pid}
+        GenServer.stop(pid, :normal)
+        {:ok, new_pid} = start_supervised_instrument(manager, key, info, connection_opts)
+        {:restart, new_pid}
 
       {:error, reason} ->
         {:error, reason}
     end
   end
 
+  defp start_supervised_instrument(manager, key, info, connection_opts) do
+    via = via_name(manager, key, info)
+
+    DynamicSupervisor.start_child(
+      supervisor(manager),
+      {Connection, [{:name, via} | connection_opts]}
+    )
+  end
+
   @spec lookup(manager(), key()) :: {pid(), info()}
   def lookup(manager \\ __MODULE__, key) do
     case Registry.lookup(registry(manager), key) do
-      [] -> raise "Instrument #{key} not found."
+      [] -> {:error, "Instrument #{key} not found."}
       [{pid, info}] -> {pid, info}
     end
   end
