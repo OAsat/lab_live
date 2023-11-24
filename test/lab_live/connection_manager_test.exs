@@ -1,5 +1,6 @@
 defmodule LabLive.ConnectionManagerTest do
   use ExUnit.Case
+  alias LabLive.Connection
   alias LabLive.ConnectionManager
   alias LabLive.Connection.Method
   alias Method.Mock
@@ -36,7 +37,7 @@ defmodule LabLive.ConnectionManagerTest do
       assert :ok = GenServer.stop(pid, :normal)
     end
 
-    test "connection opts reset on second start_instrument/4", %{test: test_name} do
+    test "opts and info reset on second start_instrument/4", %{test: test_name} do
       Method.Mock
       |> expect(:init, fn "first" -> :resource end)
       |> expect(:init, fn "second" -> :resource end)
@@ -50,15 +51,55 @@ defmodule LabLive.ConnectionManagerTest do
           method_opts: "first"
         )
 
-      {:reset, ^pid} =
+      {:restart, pid2} =
         ConnectionManager.start_instrument(test_name, :inst, "info2",
           method: Method.Mock,
           method_opts: "second"
         )
 
-      # TODO fix: The info is not updated. The registry value can only be updated from the Connection process.
-      assert "info1" == ConnectionManager.info(test_name, :inst)
-      assert :ok = GenServer.stop(pid, :normal)
+      assert pid != pid2
+      assert "info2" == ConnectionManager.info(test_name, :inst)
+      assert :ok = GenServer.stop(pid2, :normal)
+    end
+
+    @tag :capture_log
+    test "restart on error", %{test: test_name} do
+      Method.Mock
+      |> expect(:init, fn _ -> :resource end)
+      |> expect(:read, fn "raise error", :resource -> raise "error in mock read/2" end)
+      |> expect(:terminate, fn _, :resource -> :ok end)
+      |> expect(:init, fn _ -> :resource end)
+
+      start_supervised({ConnectionManager, name: test_name})
+
+      {:ok, pid} =
+        ConnectionManager.start_instrument(test_name, :inst, nil, method: Method.Mock)
+
+      catch_exit do
+        Connection.read(pid, "raise error")
+      end
+
+      Process.sleep(20)
+      assert {pid2, nil} = ConnectionManager.lookup(test_name, :inst)
+      assert pid != pid2
+      assert !Process.alive?(pid)
+      assert Process.alive?(pid2)
+    end
+
+    @tag :capture_log
+    test "connection doesn't restart on normal exit", %{test: test_name} do
+      Method.Mock
+      |> expect(:init, fn _ -> :resource end)
+      |> expect(:terminate, fn :normal, :resource -> :ok end)
+
+      start_supervised({ConnectionManager, name: test_name})
+
+      {:ok, pid} =
+        ConnectionManager.start_instrument(test_name, :inst, nil, method: Method.Mock)
+
+      GenServer.stop(pid, :normal)
+      Process.sleep(20)
+      assert {:error, "Instrument inst not found."} = ConnectionManager.lookup(test_name, :inst)
     end
 
     test "lookup/2, info/2 and pid/2", %{test: test_name} do
@@ -75,9 +116,8 @@ defmodule LabLive.ConnectionManagerTest do
     test "lookup/2 raises error with unknown key", %{test: test_name} do
       start_supervised({ConnectionManager, name: test_name})
 
-      assert_raise(RuntimeError, "Instrument unknown not found.", fn ->
-        ConnectionManager.lookup(test_name, :unknown)
-      end)
+      assert {:error, "Instrument unknown not found."} ==
+               ConnectionManager.lookup(test_name, :unknown)
     end
 
     test "keys_and_pids/1", %{test: test_name} do

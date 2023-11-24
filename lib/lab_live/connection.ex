@@ -2,7 +2,7 @@ defmodule LabLive.Connection do
   @moduledoc """
   Sever to connect to an instrument.
   """
-  use GenServer
+  use GenServer, restart: :transient
   alias LabLive.Connection.Method
 
   @type resource() :: any()
@@ -56,6 +56,10 @@ defmodule LabLive.Connection do
   end
 
   @impl GenServer
+  def terminate(:normal, %State{} = state) do
+    :ok = state.method.terminate(:normal, state.resource)
+  end
+
   def terminate(reason, %State{} = state) do
     :ok = state.method.terminate(reason, state.resource)
     sleep(state.sleep_after_reply)
