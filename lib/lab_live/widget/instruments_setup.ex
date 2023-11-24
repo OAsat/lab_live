@@ -34,10 +34,10 @@ defmodule LabLive.Widget.InstrumentsSetup do
   def handle_event("add_instrument", _payload, ctx) do
     new_spec = %{
       name: "",
-      sleep_after_reply: 0,
+      sleep_after_reply: "0",
       model: "",
       selected_type: "Dummy",
-      dummy: %{if_random: false},
+      dummy: %{if_random: "False"},
       pyvisa: %{address: ""},
       tcp: %{address: "", port: ""}
     }
