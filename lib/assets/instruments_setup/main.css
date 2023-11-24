@@ -76,13 +76,6 @@ pre {
   flex-wrap: wrap;
 }
 
-.column {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-
 .root {
   display: flex;
   background-color: var(--blue-100);
