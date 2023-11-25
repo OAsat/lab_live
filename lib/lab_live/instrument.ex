@@ -37,6 +37,17 @@ defmodule LabLive.Instrument do
     ConnectionManager.start_instrument(manager, key, model, opts)
   end
 
+  def start_instruments(specs_map) do
+    start_instruments(ConnectionManager, specs_map)
+  end
+
+  def start_instruments(manager, specs_map)
+      when is_atom(manager) and (is_map(specs_map) or is_list(specs_map)) do
+    for {inst_key, specs} <- specs_map do
+      {inst_key, start_instrument(manager, inst_key, specs[:selected_type], specs)}
+    end
+  end
+
   def start_instruments(manager \\ ConnectionManager, specs_map, connections) do
     for {inst_key, method} <- connections do
       {inst_key, start_instrument(manager, inst_key, :"#{method}", specs_map[inst_key])}

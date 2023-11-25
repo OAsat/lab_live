@@ -16,7 +16,7 @@ defmodule LabLive.Widget.InstrumentsControl do
         answer: ""
       )
 
-    {:ok, ctx, reevaluate_on_change: true}
+    {:ok, ctx}
   end
 
   @impl true

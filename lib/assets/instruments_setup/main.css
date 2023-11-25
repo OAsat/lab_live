@@ -72,14 +72,6 @@ pre {
 
 .row {
   display: flex;
-  padding: 0px 16px;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-
-.column {
-  display: flex;
-  flex-direction: column;
   gap: 24px;
   flex-wrap: wrap;
 }
@@ -163,6 +155,24 @@ input[type="number"] {
   display: flex;
   flex-direction: column;
   min-width: 200px;
+}
+
+.field-small {
+  display: flex;
+  flex-direction: column;
+  min-width: 100px;
+}
+
+.field-tiny {
+  display: flex;
+  flex-direction: column;
+  max-width: 100px;
+}
+
+.field-large {
+  display: flex;
+  flex-direction: column;
+  min-width: 250px;
 }
 
 .root-field {
@@ -577,11 +587,10 @@ select option {
 
 .card {
   display: flex;
+  border-bottom: solid 1px var(--gray-300);
   font-size: 0.875rem;
   justify-content: space-between;
   padding: 9px 12px;
-  border-top-right-radius: 0.5rem;
-  border-bottom-right-radius: 0.5rem;
 }
 
 .card.filters {

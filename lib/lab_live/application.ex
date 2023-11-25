@@ -5,6 +5,8 @@ defmodule LabLive.Application do
 
   @impl true
   def start(_type, _args) do
+    Kino.SmartCell.register(LabLive.Widget.InstrumentsSetup)
+
     children = [
       LabLive.ConnectionManager,
       LabLive.Execution.Supervisor,
