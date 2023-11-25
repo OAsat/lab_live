@@ -965,5 +965,6 @@ select.input.tag-input:disabled {
 
 .script {
   font-family: "JetBrains Mono", monospace;
+  font-size: 0.875rem;
   color: var(--blue-600);
 }
