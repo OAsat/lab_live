@@ -1,36 +1,34 @@
-defmodule LabLive.Instrument.Impl.Tcp do
-  alias LabLive.Instrument.Impl
-  @behaviour Impl
+defmodule LabLive.Connection.Method.Tcp do
+  alias LabLive.Connection.Method
+  @behaviour Method
+
+  @type address() :: [non_neg_integer()]
+  @type opt() :: {:address, address()} | {:port, non_neg_integer()}
+  @type opts() :: [opt()]
 
   @tcp_opts [:binary, packet: 0, active: false, reuseaddr: true]
 
-  @impl Impl
+  @impl Method
   def init(opts) do
-    address = Keyword.get(opts, :address)
-    port = Keyword.get(opts, :port)
-    {address, port}
+    {List.to_tuple(opts[:address]), opts[:port]}
   end
 
-  @impl Impl
+  @impl Method
   def read(message, {address, port}) do
     socket = connect_and_send(message, address, port)
     {:ok, answer} = :gen_tcp.recv(socket, 0, 1000)
-    {answer, socket}
-  end
-
-  @impl Impl
-  def after_reply(socket, _state) do
     :gen_tcp.close(socket)
+    answer
   end
 
-  @impl Impl
+  @impl Method
   def write(message, {address, port}) do
     connect_and_send(message, address, port) |> :gen_tcp.close()
 
     :ok
   end
 
-  @impl Impl
+  @impl Method
   def terminate(_reason, _resource) do
     :ok
   end

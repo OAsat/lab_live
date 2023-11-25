@@ -5,8 +5,10 @@ defmodule LabLive.Application do
 
   @impl true
   def start(_type, _args) do
+    Kino.SmartCell.register(LabLive.Widget.InstrumentsSetup)
+
     children = [
-      LabLive.Instrument.PortManager,
+      LabLive.ConnectionManager,
       LabLive.Execution.Supervisor,
       {DynamicSupervisor, strategy: :one_for_one, name: LabLive.Data.Supervisor}
     ]

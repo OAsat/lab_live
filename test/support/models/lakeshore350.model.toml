@@ -1,0 +1,47 @@
+name = "LakeShore 350"
+
+[character]
+input_term = "\n"
+output_term = "\r\n"
+joiner = ";"
+
+[query]
+[query."setp?"]
+input = "SETP? {{channel}}"
+output = "{{kelvin:float}}"
+
+[query.setp]
+input = "SETP {{channel}},{{kelvin}}"
+
+[query."range?"]
+input = "RANGE? {{channel}}"
+output = "{{level:int}}"
+
+[query.range]
+input = "RANGE {{channel}},{{level}}"
+
+[query."ramp?"]
+input = "RAMP? {{channel}}"
+output = "{{onoff:int}},{{kpermin:float}}"
+
+[query.ramp]
+input = "RAMP {{channel}},{{binary}},{{kpermin}}"
+
+[query."temp?"]
+input = "KRDG? {{channel}}"
+output = "{{kelvin:float}}"
+
+[query."sensor?"]
+input = "SRDG? {{channel}}"
+output = "{{ohm:float}}"
+
+[query."heater?"]
+input = "HTR? {{channel}}"
+output = "{{percentage:float}}"
+
+[query."pid?"]
+input = "PID? {{channel}}"
+output = "{{p:float}},{{i:float}},{{d:float}}"
+
+[query.pid]
+input = "PID {{channel}},{{p}},{{i}},{{d}}"

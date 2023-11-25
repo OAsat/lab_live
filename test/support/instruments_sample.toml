@@ -1,0 +1,25 @@
+[lakeshore]
+model = "./models/lakeshore350.model.json"
+sleep_after = 50
+
+[lakeshore.tcp]
+address = [192, 168, 0, 1]
+port = 7777
+
+[lakeshore.pyvisa]
+address = "GPIB0::1::INSTR"
+
+[mercury]
+model = "./models/oxford_mercury_itc.model.toml"
+sleep_after_reply = 100
+
+[mercury.tcp]
+address = [192, 168, 1, 1]
+port = 8888
+
+[lakeshore_2]
+model = "./models/lakeshore350.model.toml"
+sleep_after_reply = 50
+
+[lakeshore_2.pyvisa]
+address = "GPIB0::2::INSTR"

@@ -1,90 +1,141 @@
 defmodule LabLive.Instrument do
-  @moduledoc """
-  Functions to handle instruments.
+  alias LabLive.ConnectionManager
+  alias LabLive.Connection
+  alias LabLive.Model
 
-      iex> alias LabLive.Instrument
-      iex> alias LabLive.Instrument.Impl.Dummy
-      iex> {:ok, _pid} = Instrument.start(:inst1, model: Lakeshore350, type: Dummy, dummy: Lakeshore350.dummy())
-      iex> Instrument.read(:inst1, "SETP? 2\\n")
-      "1.0\\r\\n"
-      iex> Instrument.read(:inst1, :setp, channel: 2)
-      %{kelvin: 1.0}
-      iex> Instrument.read_joined(:inst1, sensor: [channel: "A"], sensor: [channel: "C"], heater: [channel: 2])
-      [sensor: %{ohm: 1200.0}, sensor: %{ohm: 0.23}, heater: %{percentage: 56.7}]
-
-  Starting multiple instruments:
-      iex> alias LabLive.Instrument
-      iex> alias LabLive.Instrument.Impl.Dummy
-      iex> instruments = [
-      ...>     inst2: [type: Dummy, dummy: %{}],
-      ...>     inst3: [type: Dummy, dummy: %{}]
-      ...>   ]
-      iex> %{inst2: {:ok, _}, inst3: {:ok, _}} = Instrument.start(instruments)
-  """
-  alias LabLive.Instrument.PortManager
-  alias LabLive.Instrument.Port
-
-  def start(instruments) when is_list(instruments) or is_map(instruments) do
-    PortManager.start_instrument(instruments)
+  def load_toml_file(file) do
+    File.read!(file)
+    |> Toml.decode!(keys: :atoms)
+    |> transform_loaded_map(file)
   end
 
-  def start(instrument, opts \\ []) when is_atom(instrument) and is_list(opts) do
-    PortManager.start_instrument(instrument, opts)
+  defp transform_loaded_map(map, path) do
+    for {inst_key, content} <- map do
+      model_path = Path.dirname(path) |> Path.join(content[:model])
+      {inst_key, %{content | model: Model.from_file(model_path)}}
+    end
+    |> Enum.into(%{})
   end
 
-  def read(key, query) when is_binary(query) do
-    PortManager.pid(key) |> Port.read(query)
+  defp map_method(type_atom) do
+    case type_atom do
+      :dummy -> Connection.Method.Dummy
+      :pyvisa -> Connection.Method.Pyvisa
+      :tcp -> Connection.Method.Tcp
+      fallback -> fallback
+    end
   end
 
-  def read(key, query_key, opts \\ []) when is_atom(query_key) and is_list(opts) do
-    {pid, model} = PortManager.info(key)
-    Port.read(pid, model, query_key, opts)
+  defp start_instrument(manager, key, method, specs) do
+    opts = [
+      sleep_after_reply: specs[:sleep_after_reply],
+      method: map_method(method),
+      method_opts: specs[method] || [model: specs[:model]]
+    ]
+
+    model = %{model: specs[:model]}
+    ConnectionManager.start_instrument(manager, key, model, opts)
   end
 
-  def read_joined(key, query_keys_and_opts) when is_list(query_keys_and_opts) do
-    {pid, model} = PortManager.info(key)
-    Port.read_joined(pid, model, query_keys_and_opts)
+  def start_instruments(specs_map) do
+    start_instruments(ConnectionManager, specs_map)
   end
 
-  def write(key, query) when is_binary(query) do
-    PortManager.pid(key) |> Port.write(query)
+  def start_instruments(manager, specs_map)
+      when is_atom(manager) and (is_map(specs_map) or is_list(specs_map)) do
+    for {inst_key, specs} <- specs_map do
+      {inst_key, start_instrument(manager, inst_key, specs[:selected_type], specs)}
+    end
   end
 
-  def write(key, query_key, opts \\ []) when is_atom(query_key) and is_list(opts) do
-    {pid, model} = PortManager.info(key)
-    Port.write(pid, model, query_key, opts)
+  def start_instruments(manager \\ ConnectionManager, specs_map, connections) do
+    for {inst_key, method} <- connections do
+      {inst_key, start_instrument(manager, inst_key, :"#{method}", specs_map[inst_key])}
+    end
   end
 
-  def write_joined(key, query_keys_and_opts) when is_list(query_keys_and_opts) do
-    {pid, model} = PortManager.info(key)
-    Port.write_joined(pid, model, query_keys_and_opts)
+  def query(inst_key, query_key) do
+    query(inst_key, query_key, [])
   end
 
-  def render_controller() do
-    inst_labels =
-      PortManager.keys_and_pids()
-      |> Enum.map(fn {key, _pid} -> {key, "#{key}"} end)
+  def query(inst_key, query_key, query_params)
+      when is_atom(query_key) and is_list(query_params) do
+    query(ConnectionManager, inst_key, query_key, query_params)
+  end
 
-    form =
-      Kino.Control.form(
-        [
-          inst: Kino.Input.select("Instrument", inst_labels),
-          query: Kino.Input.text("Query"),
-          method: Kino.Input.select("Read/Write", read: "Read", write: "Write")
-        ],
-        submit: "Send"
-      )
+  def query(manager, inst_key, query_key) when is_atom(query_key) do
+    query(manager, inst_key, query_key, [])
+  end
 
-    Kino.listen(
-      form,
-      fn %{data: %{inst: inst, query: query, method: method}} ->
-        case method do
-          :read -> read(inst, query <> "\n")
-          :write -> write(inst, query <> "\n")
-        end
-      end
-    )
+  def query(manager, inst_key, query_key, query_params)
+      when is_atom(inst_key) and is_atom(query_key) and is_list(query_params) do
+    {pid, %{model: model}} = ConnectionManager.lookup(manager, inst_key)
 
-    form
+    case Model.get_format_pair(model, query_key, query_params) do
+      {input, nil} ->
+        Connection.write(pid, input)
+
+      {input, parser} ->
+        Connection.read(pid, input) |> parser.()
+    end
+  end
+
+  def read(inst_key, query_key) when is_atom(query_key) do
+    read(inst_key, query_key, [])
+  end
+
+  def read(inst_key, query_key, query_params) when is_atom(query_key) and is_list(query_params) do
+    query(ConnectionManager, inst_key, query_key, query_params)
+  end
+
+  def read(manager, inst_key, query_key) when is_atom(query_key) do
+    read(manager, inst_key, query_key, [])
+  end
+
+  def read(manager, inst_key, query_key, query_params)
+      when is_atom(query_key) and is_list(query_params) do
+    {pid, %{model: model}} = ConnectionManager.lookup(manager, inst_key)
+    {input, parser} = Model.get_format_pair(model, query_key, query_params)
+    Connection.read(pid, input) |> parser.()
+  end
+
+  def read_joined(manager \\ ConnectionManager, inst_key, keys_and_params) do
+    {pid, %{model: model}} = ConnectionManager.lookup(manager, inst_key)
+    {input, parser} = Model.get_joined_format_pair(model, keys_and_params)
+    Connection.read(pid, input) |> parser.()
+  end
+
+  def write(inst_key, query_key) when is_atom(query_key) do
+    write(inst_key, query_key, [])
+  end
+
+  def write(inst_key, query_key, query_params)
+      when is_atom(query_key) and is_list(query_params) do
+    query(ConnectionManager, inst_key, query_key, query_params)
+  end
+
+  def write(manager, inst_key, query_key) when is_atom(query_key) do
+    write(manager, inst_key, query_key, [])
+  end
+
+  def write(manager, inst_key, query_key, query_params)
+      when is_atom(query_key) and is_list(query_params) do
+    {pid, %{model: model}} = ConnectionManager.lookup(manager, inst_key)
+    {input, _} = Model.get_format_pair(model, query_key, query_params)
+    :ok = Connection.write(pid, input)
+  end
+
+  def write_joined(manager \\ ConnectionManager, inst_key, keys_and_params) do
+    {pid, %{model: model}} = ConnectionManager.lookup(manager, inst_key)
+    {input, _} = Model.get_joined_format_pair(model, keys_and_params)
+    :ok = Connection.write(pid, input)
+  end
+
+  def read_text(manager \\ ConnectionManager, inst_key, message) when is_binary(message) do
+    ConnectionManager.pid(manager, inst_key) |> Connection.read(message)
+  end
+
+  def write_text(manager \\ ConnectionManager, inst_key, message) when is_binary(message) do
+    ConnectionManager.pid(manager, inst_key) |> Connection.write(message)
   end
 end
