@@ -21,7 +21,7 @@ defmodule LabLive.Widget.InstrumentsSetupTest do
         sleep_after_reply: 0,
         model: nil,
         selected_type: :dummy,
-        dummy: %{random: false},
+        dummy: %{random: false, model: nil},
         pyvisa: %{address: ""},
         tcp: %{address: nil, port: nil}
       }
@@ -35,7 +35,7 @@ defmodule LabLive.Widget.InstrumentsSetupTest do
 
     test "converts model", %{empty_src: empty_src, empty_exp: empty_exp} do
       src = %{empty_src | "model" => "%{}"}
-      exp = %{empty_exp | model: %Model{}}
+      exp = %{empty_exp | model: %Model{}, dummy: %{random: false, model: %Model{}}}
       assert [inst: exp] == InstrumentsSetup.convert_attrs_specs([src])
     end
 
@@ -63,7 +63,7 @@ defmodule LabLive.Widget.InstrumentsSetupTest do
 
     test "converts dummy spec", %{empty_src: empty_src, empty_exp: empty_exp} do
       src = %{empty_src | "dummy" => %{"if_random" => "True"}}
-      exp = %{empty_exp | dummy: %{random: true}}
+      exp = %{empty_exp | dummy: %{random: true, model: nil}}
       assert [inst: exp] == InstrumentsSetup.convert_attrs_specs([src])
     end
 
