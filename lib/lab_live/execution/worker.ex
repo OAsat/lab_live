@@ -133,18 +133,6 @@ defmodule LabLive.Execution.Worker do
     %State{state | stack: tail}
   end
 
-  defp run_step(%State{stack: [{module, function_name} | tail]} = state)
-       when is_atom(module) and is_atom(function_name) do
-    Kernel.apply(module, function_name, [])
-    %State{state | stack: tail}
-  end
-
-  defp run_step(%State{stack: [{module, function_name, args} | tail]} = state)
-       when is_atom(module) and is_atom(function_name) and is_list(args) do
-    Kernel.apply(module, function_name, args)
-    %State{state | stack: tail}
-  end
-
   defp run_step(%State{stack: [iterate: key, do: iteration]} = state) do
     %State{state | stack: [[iterate: key, do: iteration]]}
   end
@@ -184,5 +172,17 @@ defmodule LabLive.Execution.Worker do
 
   defp run_step(%State{stack: [list | tail]} = state) when is_list(list) do
     %State{state | stack: list ++ tail}
+  end
+
+  defp run_step(%State{stack: [{module, function_name} | tail]} = state)
+       when is_atom(module) and is_atom(function_name) do
+    Kernel.apply(module, function_name, [])
+    %State{state | stack: tail}
+  end
+
+  defp run_step(%State{stack: [{module, function_name, args} | tail]} = state)
+       when is_atom(module) and is_atom(function_name) and is_list(args) do
+    Kernel.apply(module, function_name, args)
+    %State{state | stack: tail}
   end
 end
