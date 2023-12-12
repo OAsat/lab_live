@@ -68,7 +68,7 @@ defmodule LabLive.Widget.InstrumentsControl do
         %{"instrument" => instrument, "query_key" => query_key, "params" => params},
         ctx
       ) do
-    param_values = for {key, %{value: value}} <- params, do: {:"#{key}", value}
+    param_values = for %{"key" => key, "value" => value} <- params, do: {:"#{key}", value}
     answer = Instrument.query(:"#{instrument}", :"#{query_key}", param_values) |> Kernel.inspect()
     ctx = assign(ctx, answer: answer)
     broadcast_event(ctx, "update_answer", answer)
