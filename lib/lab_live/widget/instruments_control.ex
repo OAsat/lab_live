@@ -13,7 +13,9 @@ defmodule LabLive.Widget.InstrumentsControl do
         models: models(),
         instrument: "",
         query_key: "",
-        answer: ""
+        answer: "",
+        query_text: "",
+        if_write_only: true
       )
 
     {:ok, ctx}
@@ -25,7 +27,9 @@ defmodule LabLive.Widget.InstrumentsControl do
       models: ctx.assigns.models,
       instrument: ctx.assigns.instrument,
       query_key: ctx.assigns.query_key,
-      answer: ctx.assigns.answer
+      answer: ctx.assigns.answer,
+      query_text: ctx.assigns.query_text,
+      if_write_only: ctx.assigns.if_write_only
     }
 
     {:ok, payload, ctx}
@@ -36,7 +40,26 @@ defmodule LabLive.Widget.InstrumentsControl do
     {:noreply, ctx}
   end
 
-  def handle_event("send_query", %{"query_key" => ""}, ctx) do
+  def handle_event(
+        "send_query",
+        %{
+          "instrument" => instrument,
+          "query_key" => "",
+          "query_text" => query_text,
+          "if_write_only" => write_only?
+        },
+        ctx
+      ) do
+    answer =
+      if write_only? do
+        Instrument.write_text(:"#{instrument}", query_text)
+      else
+        Instrument.read_text(:"#{instrument}", query_text)
+      end
+      |> Kernel.inspect()
+
+    ctx = assign(ctx, answer: answer, query_text: query_text, if_write_only: write_only?)
+    broadcast_event(ctx, "update_answer", answer)
     {:noreply, ctx}
   end
 
