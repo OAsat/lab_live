@@ -9,7 +9,7 @@ defmodule LabLive.Application do
 
     children = [
       LabLive.ConnectionManager,
-      LabLive.DataManager,
+      LabLive.StorageManager,
       LabLive.Execution.Supervisor,
       {DynamicSupervisor, strategy: :one_for_one, name: LabLive.Data.Supervisor}
     ]

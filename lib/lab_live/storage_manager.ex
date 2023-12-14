@@ -1,15 +1,15 @@
-defmodule LabLive.DataManager do
+defmodule LabLive.StorageManager do
   @moduledoc """
   Supervisor to manage data servers by keys.
   """
-  alias LabLive.Data
+  alias LabLive.Storage
   alias LabLive.DataInfo
   use Supervisor
 
   @type opts() :: [name: manager()]
   @type key() :: atom()
-  @type data() :: Data.content()
   @type info() :: DataInfo.t()
+  @type data() :: Storage.content()
   @type on_start_data() :: {:ok, pid()} | {:reset, pid()} | {:error, term()}
   @type manager() :: __MODULE__ | module() | atom()
 
@@ -59,7 +59,7 @@ defmodule LabLive.DataManager do
 
   defp start_supervised_data(manager, key, data, info) do
     via = via_name(manager, key, info)
-    DynamicSupervisor.start_child(supervisor(manager), {Data, [name: via, init: data]})
+    DynamicSupervisor.start_child(supervisor(manager), {Storage, [name: via, init: data]})
   end
 
   @spec lookup(manager(), key()) :: {pid(), info()}
